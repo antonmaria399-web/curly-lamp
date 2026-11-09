@@ -68,8 +68,32 @@ The live product itself (try-first drop zone) + under it a device frame showing 
 - Fonts: **Inter** (UI, titles, -0.04em on big titles) + **JetBrains Mono** (every amount, tabular figures, labels in `[ BRACKETS ]`).
 - Signature elements: (1) **the scan frame** — a statement page with a sweeping lime scan line and rows lighting up; (2) **the leak meter** — a big tabular counter "$214.37 / mo" that counts up, with a red down-arrow; (3) **ledger rows** — merchant · dotted leader · amount, with a recurring "↻ monthly" chip and a "last used" dot.
 
-## Plans & quotas
-(owner's pick goes here — step 0c)
+## Plans & quotas (owner answered "keep" — plans read live from Kwop, never hardcoded)
+Tier = rank by price of Kwop's plans (`lib/quotas.ts`). Counted on the server per 30-day billing period.
+| Tier | Kwop plan today | Scans / period | History | Hidden Fee Hunter | Goal tracker | Faceless Export | Compare over time | Custom rules |
+|---|---|---|---|---|---|---|---|---|
+| 0 free | — | 3 / day (device + IP + account), report locked | — | — | — | — | — | — |
+| 1 | Starter $5/mo ($48/yr) | 10 | 3 months | locked ("Unlock with Pro") | yes | locked | locked | locked |
+| 2 ★ | Pro $9/mo ($86/yr) — Most popular | 30 | 12 months | yes | yes | yes | locked | locked |
+| 3 | Power $19/mo ($182/yr) | 100 | 36 months | yes | yes | yes | yes | yes |
+
+## Architecture (what lives where)
+- `lib/ai.ts` — the only AI entry point (Gemini `GEMINI_MODEL`, default `gemini-flash-latest`); falls back to the PDF text parser (`lib/pdf.ts` + `lib/engine.ts#parseStatementText`) for text PDFs when no key. Leak detection is deterministic in `lib/engine.ts#analyze` for both.
+- The uploaded file is **never stored**; only `reports.result` (jsonb).
+- Locked viewers get `lib/redact.ts#lock` (leak #1 only, never totals) — blur cannot be bypassed in the browser.
+- `lib/kwop.ts` — plans (60 s cache), `getPlan(email)` (60 s cache, `fresh` after payment), checkout/confirm/cancel/event/connect.
+- `lib/viewer.ts#getViewer` — user + plan + tier + limits, checked on the server for every paid feature.
+- `proxy.ts` — Supabase session refresh, redirects (logged-in `/` → `/dashboard`, app pages need login), cookies `kwop_k` / `bdg_plan` / `bdg_src` (30 d), device id `bdg_dev`.
+- Funnel UI: `components/funnel/{scanner,report,unlock,auth-form}.tsx`. Landing: `app/page.tsx` + `components/landing/*`. App: `app/(app)/*` + `components/app/*`.
+- Sample statement for "Try a sample": `public/sample-statement.pdf` (regenerate with `node scripts/make-sample.mjs`; it is labelled as an example).
+- Lint: `react-hooks/set-state-in-effect` is a warning on purpose (hydration-safe mount state).
+
+## Status / to do
+- [x] Steps 0–4, 6–8 code written; `npm run build` and `npm run lint` clean (warnings only).
+- [ ] Step 5 Supabase project + migrations (blocked: proxy-injected Supabase token rejected in the first cloud session).
+- [ ] Gemini key (owner to provide) → `GEMINI_API_KEY`.
+- [ ] Google sign-in (owner steps, then `NEXT_PUBLIC_GOOGLE_ENABLED=1`).
+- [ ] e2e test, premium pass, Vercel deploy, Kwop connect, security pass.
 
 ## Kwop API (server only, `lib/kwop.ts`)
 `KWOP_API` env var. GET plans · POST /checkout · POST /confirm · GET /plan?email · POST /cancel · POST /event · POST /connect. See `docs/BUILD-SPEC.md` §8. Never hardcode a price or plan id. Kwop tracked link `?k=` → cookie `kwop_k` (30 d) → `profiles.kwop_k` → sent as `k` on checkout.
