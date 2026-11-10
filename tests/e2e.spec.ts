@@ -54,11 +54,24 @@ test("landing → sample scan → locked → sign-up → paywall → checkout sh
   await expect(paywall).toBeVisible();
   await paywall.getByRole("button", { name: "Close" }).click();
   await expect(paywall).toBeHidden();
+  // First ✕: one honest yearly offer (real −20%, 30-minute window saved on the server).
+  const offer = page.getByRole("dialog", { name: "Yearly offer" });
+  await expect(offer.getByText("[ One-time offer ]")).toBeVisible();
+  await expect(offer.getByText(/\/ day instead of/)).toBeVisible();
+  await offer.getByRole("button", { name: "No thanks" }).click();
+  await expect(offer).toBeHidden();
   await expect(page.getByText("Smartsafe Self Storage").first()).toBeVisible();
+  // Never shown twice.
+  await page.getByRole("button", { name: "See my full leak report" }).last().click();
+  await expect(paywall).toBeVisible();
+  await paywall.getByRole("button", { name: "Close" }).click();
+  await expect(paywall).toBeHidden();
+  await page.waitForTimeout(800);
+  await expect(offer).toBeHidden();
 
   await page.goto("/account");
   await expect(page.getByRole("heading", { name: "Account" })).toBeVisible();
-  await expect(page.locator(`input[value="${email}"]`)).toBeVisible();
+  await expect(page.locator(`input[value="${email}"]`).first()).toBeVisible();
 
   // The report waits for them in the app, still locked.
   await page.goto("/dashboard");

@@ -104,7 +104,19 @@ export async function cancelPlan(email: string, exceptRef?: string) {
   return (await r.json().catch(() => ({ message: "We couldn't reach billing. Try again in a minute." }))) as { message: string; manage_url?: string };
 }
 
-export type KwopEvent = "signup" | "onboarding_done" | "aha" | "paywall_view" | "feature_used";
+export type KwopEvent =
+  | "signup"
+  | "onboarding_done"
+  | "aha"
+  | "paywall_view"
+  | "feature_used"
+  | "share"
+  | "invite_sent"
+  | "invite_signup"
+  | "creator_apply"
+  | "offer_view"
+  | "offer_paid"
+  | "cancel_reason";
 
 /** Fire-and-forget: never blocks, never throws. */
 export function track(type: KwopEvent, email: string | null | undefined, detail?: string) {

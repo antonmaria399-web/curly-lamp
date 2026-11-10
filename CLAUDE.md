@@ -68,6 +68,38 @@ The live product itself (try-first drop zone) + under it a device frame showing 
 - Fonts: **Inter** (UI, titles, -0.04em on big titles) + **JetBrains Mono** (every amount, tabular figures, labels in `[ BRACKETS ]`).
 - Signature elements: (1) **the scan frame** — a statement page with a sweeping lime scan line and rows lighting up; (2) **the leak meter** — a big tabular counter "$214.37 / mo" that counts up, with a red down-arrow; (3) **ledger rows** — merchant · dotted leader · amount, with a recurring "↻ monthly" chip and a "last used" dot.
 
+## The Kwop method (GROWTH build, Kwop Pro) — rules are literal
+Owner brief: `KWOP-UPGRADE.md` (gitignored, holds the key). These replace older rules on the same topics.
+1. Landing sells the RESULT, never the price: no plans, prices, pricing section or "Pricing" link on any public page. Prices only in the paywall.
+2. One action everywhere: **"Find my leaks"** → straight into the funnel (the hero drop zone; other public pages send to `/#scan` keeping utm/plan/ref).
+3. Value before any price and before any form (try first, no account).
+4. Sign-up in one tap at the right moment ("Save your leak report"): Google first (hidden until it works), email + password, no confirmation. The try is saved and attached at sign-up.
+5. The aha: their statement scanned step by step, % up to 99, then "Your leak report is ready."
+6. Paywall at the peak, over their own blurred report; one unlock button "See my full leak report".
+7. Prices per day, big ("$0.30 / day"), monthly small.
+8. Checkout inside the page (Whop embed via Kwop), never another site.
+9. Three plans that make people climb; a lower plan visibly misses something; a finished quota shows the next plan.
+10. Phones first (390 px), then computer.
+11. Everything real: real accounts, engine, checkout. No fake data, no dead button, no "coming soon" in the funnel.
+12. Zero friction, zero dead ends; a returning visitor lands where they stopped.
+13. Honest: no fake reviews/counts/logos/press/timers. Numbers are product facts or real DB counts once worth showing (hero shows "N+ statements scanned" only from 1,000).
+14. Only promise what a website can deliver (e.g. Budgeto cannot see which apps you open: it says so).
+
+## Growth blueprint (Kwop Pro) — what exists and where
+- **Hero visual to play with:** `components/landing/growth.tsx#LeakPlayground` — tap example leaks, the leak meter drops, yearly savings count up (labelled example).
+- **Scroll story:** `ScrollStory` — on computers a sticky phone changes screen (Upload → Analyze → Save) as the steps scroll by; on phones the 3 phones stack.
+- **VSL:** motion VSL under the hero (`components/landing/vsl.tsx`), `VSL.md` = voice-over script; `public/vsl.mp4` replaces it once recorded.
+- **Share:** every report has Share (`/s/<id>?i=<invite>` + next/og image, totals only); the share CTA goes through the sharer's invite link.
+- **Invites (`/i/<code>`):** friend signs up with the link → both +3 scans; friend pays → inviter +10 scans (`lib/growth.ts#REWARD`, ledger `invite_rewards`, balance `profiles.bonus_scans`, used when the plan's monthly scans are used up). Shown in Account, under every full report and on the dashboard.
+- **Creator program:** `/creators` (public, footer "Creators: get paid to post"), pay from `CREATOR_RATE` ($1 / 1,000 views) and `CREATOR_CAP` ($100 / video). Applications → `creator_applications` (5/day/IP, service role only). Creator links `?ref=<code>` → cookie `bdg_ref` → `profiles.ref_code` + `source`.
+- **/admin** (owner only = `OWNER_EMAIL`, checked in `proxy.ts`, the page and `/api/admin`; anyone else 404): Numbers (7/30 days from `events`), Creators (status new → accepted → active → stopped, ref code, "Copy the welcome message", Monday payout table), Scripts, Messages (`lib/growth-content.ts`), cancel reasons.
+- **SEO:** `/for/<audience>` ×8, `/vs/<rocket-money|ynab|copilot-money>`, `/tools/subscription-calculator` (free, no account), `sitemap.xml`, `robots.txt`, canonicals, JSON-LD (SoftwareApplication, FAQPage, WebApplication), an OG image per page. Content in `lib/seo.ts` (verifiable facts only).
+- **Keep them:** first ✕ on the paywall → one honest offer: the yearly plan at its real −20 % per day, a real 30-minute window saved on the server (`profiles.offer_until`, `offer_seen_at`), never shown twice; then the locked report with the sticky unlock bar. Cancel asks why in one tap (too expensive → yearly per day; not using → come back monthly; missing → "tell us what's missing", saved for /admin; other) and "Cancel anyway" stays one tap away.
+- **Emails (Resend free plan, `RESEND_API_KEY`; skipped silently without it):** welcome with their report, "Your leak report is waiting" (1 h and 24 h after a paywall view without payment), win-back 7 days after a cancel, Monday recap. One Vercel cron a day (`vercel.json` → `/api/cron`, `CRON_SECRET`): the "1 hour" email goes at the next daily run (free plan = 1 cron a day). Each email once (`email_log`), one-click unsubscribe (`/api/unsubscribe`, HMAC link + List-Unsubscribe header).
+- **Come back:** dashboard "monthly check-up" (next statement date), "What's new" card (`lib/news.ts`, `profiles.last_seen_news`).
+- **Events:** to Kwop (fire-and-forget) and to the local `events` table: signup, onboarding_done, aha, paywall_view, feature_used, share, invite_sent, invite_signup, creator_apply, offer_view, offer_paid, cancel_reason (+ local only: checkout, paid, cancelled for revenue in /admin).
+- Go-to-market plan: `GROWTH.md`.
+
 ## Plans & quotas (owner answered "keep" — plans read live from Kwop, never hardcoded)
 Tier = rank by price of Kwop's plans (`lib/quotas.ts`). Counted on the server per 30-day billing period.
 | Tier | Kwop plan today | Scans / period | History | Hidden Fee Hunter | Goal tracker | Faceless Export | Compare over time | Custom rules |
@@ -101,10 +133,31 @@ Tier = rank by price of Kwop's plans (`lib/quotas.ts`). Counted on the server pe
 - [ ] Gemini key (owner) → `GEMINI_API_KEY` in .env.local + Vercel. Until then text PDFs work with the built-in parser; photos ask for the PDF.
 - [ ] Google sign-in (owner steps, then Supabase `external_google_*` + `NEXT_PUBLIC_GOOGLE_ENABLED=1`).
 
+## Audit vs the GROWTH build (Nov 10, session 3)
+- [x] Landing: no prices; hero = live product; VSL; how it works; product in action; comparison; questions; sticky CTA on phones; footer wordmark.
+- [x] Growth hero visual you can play with (leak playground) + scroll-told sticky phone story.
+- [x] Real proof only: true DB count shown from 1,000 scans; no fake avatars.
+- [x] Paywall per day, Monthly/Yearly −20 %, Most popular, "Pick up where you left off", floating button, checkout sheet with Whop embed via Kwop.
+- [x] Unlock film, share images (next/og), invite link in Share.
+- [x] Quotas + upgrade sheet + cancel except_ref after an upgrade.
+- [x] Creator program (/creators + /admin), ?ref= tracking, Monday payouts.
+- [x] Invites with server-counted rewards.
+- [x] SEO pages (/for ×8, /vs ×3, /tools), sitemap, robots, canonical, JSON-LD, OG per page.
+- [x] Yearly offer on the first ✕ (30 min, server-saved, once).
+- [x] Cancel reasons → /admin.
+- [x] Emails code + daily cron + unsubscribe (live once the owner adds RESEND_API_KEY).
+- [x] What's new + monthly check-up loop.
+- [ ] Owner: Resend key (https://resend.com/api-keys) → `RESEND_API_KEY` on Vercel (+ `RESEND_FROM` once a domain is verified).
+- [ ] Owner: Google sign-in client (steps in the last message) → Supabase `external_google_*` + `NEXT_PUBLIC_GOOGLE_ENABLED=1`.
+- [ ] Owner: Gemini key → `GEMINI_API_KEY` (photos of statements need it; text PDFs work without).
+- [ ] Live DB: apply `supabase/migrations/20261110000000_growth.sql` to project `kerwcmgziheadbdmczew` (additive only, keeps every user) and set `OWNER_EMAIL`, `CREATOR_RATE`, `CREATOR_CAP`, `CRON_SECRET` on Vercel before deploying this build.
+- [ ] Lighthouse 95+ pass on the live landing page after deploy.
+
 ## Local testing
-- `.env.local`: local Supabase keys, `FREE_TRIES_PER_DAY=1000`, `DEV_PAID=email:planId,…` (fakes a paid plan, ignored in production). Test users power@ / starter@budgeto-test.dev, password `Leaks-are-bad-2026`.
+- `.env.local`: local Supabase keys, `OWNER_EMAIL`, `CREATOR_RATE`, `CREATOR_CAP`, `CRON_SECRET`, `FREE_TRIES_PER_DAY=1000`, `DEV_PAID=email:planId,…` (fakes a paid plan, ignored in production). Test users power@ / starter@budgeto-test.dev, password `Leaks-are-bad-2026`.
 - Behind the sandbox proxy, run Node with `NODE_USE_ENV_PROXY=1 NO_PROXY="localhost,127.0.0.1,$NO_PROXY"` so server fetches to Kwop work.
 - Screens: `node scripts/slices.mjs / home 390 844`, `node scripts/funnel-shots.mjs 390 844`, `node scripts/app-shots.mjs power@budgeto-test.dev 390 844 [scans]`.
+- Growth flows: `node scripts/growth-check.mjs` (dev server; admin 404s, creator apply, payout, invite reward, offer once, cancel reason).
 - E2E: `WHOP_STUB=1 npx playwright test --repeat-each=3` (stub only because cdn.whop.com is blocked in the sandbox).
 
 ## Kwop API (server only, `lib/kwop.ts`)

@@ -6,6 +6,7 @@ import { getViewer } from "@/lib/viewer";
 import { myActions, view } from "@/lib/data";
 import { supabaseServer } from "@/lib/supabase/server";
 import { AppScanner, InteractiveReport, ShareButton, UpgradeLink } from "@/components/app/bits";
+import { InviteCard } from "@/components/app/invite";
 
 export const metadata: Metadata = { title: "Leak report" };
 
@@ -51,6 +52,7 @@ export default async function ReportPage({ params }: PageProps<"/reports/[id]">)
         )}
       </div>
       <div className="mt-8">{locked ? <AppScanner initial={report} /> : <InteractiveReport report={report} actions={actions} />}</div>
+      {!locked && <InviteCard compact className="mt-8" />}
     </div>
   );
 }

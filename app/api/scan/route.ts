@@ -7,6 +7,16 @@ import { getViewer, periodStart, scansUsed } from "@/lib/viewer";
 import { lock, gate } from "@/lib/redact";
 import { clientIp, fail, json, sameOrigin } from "@/lib/http";
 import { track } from "@/lib/kwop";
+import { logEvent } from "@/lib/growth";
+
+async function takeBonusScan(userId: string) {
+  const db = supabaseAdmin();
+  const { data } = await db.from("profiles").select("bonus_scans").eq("id", userId).maybeSingle();
+  const n = data?.bonus_scans ?? 0;
+  if (n <= 0) return false;
+  const { data: upd } = await db.from("profiles").update({ bonus_scans: n - 1 }).eq("id", userId).eq("bonus_scans", n).select("id");
+  return Boolean(upd?.length);
+}
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -38,7 +48,9 @@ export async function POST(req: Request) {
     }
   } else {
     const used = await scansUsed(viewer.user!.id, periodStart(viewer.plan.until));
-    if (used >= viewer.limits.scans) {
+    if (used >= viewer.limits.scans && (await takeBonusScan(viewer.user!.id))) {
+      // An invite reward paid for this scan.
+    } else if (used >= viewer.limits.scans) {
       return fail(`You've used all ${viewer.limits.scans} scans of this month.`, 429, { code: "quota", used, limit: viewer.limits.scans });
     }
   }
@@ -96,6 +108,7 @@ export async function POST(req: Request) {
   }
   if (viewer.tier === 0) await db.from("tries").insert({ device_id: device, ip, user_id: viewer.user?.id ?? null });
   if (viewer.user) track("feature_used", viewer.user.email, "pdf_statement_scan");
+  await logEvent("onboarding_done", viewer.user ? { id: viewer.user.id } : null, "scan");
 
   const out = viewer.tier === 0 ? lock(result) : gate(result, { fees: viewer.limits.fees });
   return json({ id: row.id, file_name: name, created_at: row.created_at, result: out });

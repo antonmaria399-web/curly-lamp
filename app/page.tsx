@@ -5,10 +5,24 @@ import { Check, EyeOff, FileText, Lock, ShieldCheck, Trash2, X } from "lucide-re
 import { TopBar, Footer } from "@/components/landing/chrome";
 import { HeroFunnel } from "@/components/landing/hero-funnel";
 import { VSL } from "@/components/landing/vsl";
-import { CTA, FAQ, FeatureLoop, HeroNotifications, HowPhone, StickyCTA } from "@/components/landing/bits";
+import { CTA, FAQ, FeatureLoop, HeroNotifications, StickyCTA } from "@/components/landing/bits";
 import { Phone } from "@/components/landing/phone";
+import { LeakPlayground, ScrollStory } from "@/components/landing/growth";
 import { Reveal, Stagger, StaggerItem, CountUp } from "@/components/ui/reveal";
 import { getViewer } from "@/lib/viewer";
+import { cookies } from "next/headers";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { REWARD } from "@/lib/growth";
+
+/** A TRUE count from the database, shown only once it is worth showing. */
+async function scannedCount() {
+  try {
+    const { count } = await supabaseAdmin().from("reports").select("id", { count: "exact", head: true });
+    return count ?? 0;
+  } catch {
+    return 0;
+  }
+}
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +56,8 @@ const QUESTIONS = [
 export default async function Home() {
   const viewer = await getViewer();
   const hasVideo = existsSync(path.join(process.cwd(), "public", "vsl.mp4"));
+  const [scanned, store] = await Promise.all([scannedCount(), cookies()]);
+  const invited = Boolean(store.get("bdg_inv")?.value);
 
   return (
     <main className="bg-night text-white">
@@ -53,6 +69,13 @@ export default async function Home() {
         <div className="top-glow pointer-events-none absolute inset-0" />
         <div className="relative mx-auto max-w-[1120px] px-4 sm:px-8">
           <div className="mx-auto max-w-[820px] text-center">
+            {invited && (
+              <Reveal>
+                <p className="mx-auto mb-5 inline-flex rounded-full border border-lime/30 bg-lime/10 px-4 py-1.5 text-[13px] text-lime">
+                  A friend invited you: you both get {REWARD.friendSignup} extra scans when you sign up.
+                </p>
+              </Reveal>
+            )}
             <Reveal>
               <span className="label-mono text-white/60">[ AI statement scan ]</span>
             </Reveal>
@@ -75,6 +98,9 @@ export default async function Home() {
               <HeroFunnel authed={Boolean(viewer.user)} paid={viewer.plan.paid} />
             </div>
             <p className="num mt-5 text-center text-[12px] uppercase tracking-[0.14em] text-white/45">Free to try · No bank login · No card · Ready in seconds</p>
+            {scanned >= 1000 && (
+              <p className="num mt-2 text-center text-[12px] uppercase tracking-[0.14em] text-lime/80">{(Math.floor(scanned / 100) * 100).toLocaleString("en-US")}+ statements scanned</p>
+            )}
             <p className="mt-2 flex items-center justify-center gap-1.5 text-center text-[13px] text-white/45">
               <Lock className="h-3.5 w-3.5" /> Your file is read once and never stored. Delete your report anytime.
             </p>
@@ -136,7 +162,7 @@ export default async function Home() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section id="how" className="relative scroll-mt-24 overflow-hidden py-24 sm:py-32">
+      <section id="how" className="relative scroll-mt-24 overflow-clip py-24 sm:py-32">
         <div className="top-glow pointer-events-none absolute inset-0 opacity-60" />
         <div className="relative mx-auto max-w-[1120px] px-5 sm:px-8">
           <Reveal className="text-center">
@@ -145,20 +171,9 @@ export default async function Home() {
               Three steps. <span className="grad-text">Zero typing.</span>
             </h2>
           </Reveal>
-          <Stagger className="mt-16 grid gap-14 md:grid-cols-3 md:gap-8">
-            {[
-              [1, "Upload", "Drop last month's statement PDF from your bank's website. Or snap a photo."],
-              [2, "Analyze", "The AI reads every line, groups charges by merchant and flags what repeats."],
-              [3, "Save", "Cancel what you don't use with the steps we give you. Watch your savings stack up."],
-            ].map(([n, t, d]) => (
-              <StaggerItem key={n as number} className="text-center">
-                <HowPhone step={n as 1 | 2 | 3} />
-                <div className="num mt-8 text-sm text-lime">0{n as number}</div>
-                <h3 className="mt-1 text-2xl font-semibold tracking-tight">{t as string}</h3>
-                <p className="mx-auto mt-2 max-w-[300px] text-white/60">{d as string}</p>
-              </StaggerItem>
-            ))}
-          </Stagger>
+          <div className="mt-16 md:mt-6">
+            <ScrollStory />
+          </div>
           <div className="mt-16 flex justify-center">
             <CTA />
           </div>
@@ -202,8 +217,18 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* IN ACTION: phone + notifications */}
+      {/* PLAY WITH IT: the leak playground */}
       <section className="relative overflow-hidden py-24 sm:py-32">
+        <div className="top-glow pointer-events-none absolute inset-0 opacity-50" />
+        <div className="relative mx-auto max-w-[1120px] px-5 sm:px-8">
+          <Reveal>
+            <LeakPlayground />
+          </Reveal>
+        </div>
+      </section>
+
+      {/* IN ACTION: phone + notifications */}
+      <section className="relative overflow-hidden border-t border-white/[0.06] py-24 sm:py-32">
         <div className="dot-grid pointer-events-none absolute inset-0 opacity-60" />
         <div className="relative mx-auto grid max-w-[1120px] items-center gap-14 px-5 sm:px-8 md:grid-cols-2">
           <Reveal>

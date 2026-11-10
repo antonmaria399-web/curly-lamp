@@ -9,7 +9,11 @@ import { Phone } from "./phone";
 /** Every main button leads into the funnel: the hero's drop zone. */
 export function scrollToScan() {
   const el = document.getElementById("scan");
-  if (!el) return;
+  if (!el) {
+    // Pages without the drop zone (/for, /vs, /tools, /creators): into the funnel on the home page, keeping utm/plan/ref.
+    window.location.assign("/" + window.location.search + "#scan");
+    return;
+  }
   el.scrollIntoView({ behavior: "smooth", block: "center" });
   el.animate([{ boxShadow: "0 0 0 0 rgba(200,255,61,0)" }, { boxShadow: "0 0 0 8px rgba(200,255,61,.35)" }, { boxShadow: "0 0 0 0 rgba(200,255,61,0)" }], { duration: 1200, delay: 450 });
 }
@@ -18,15 +22,21 @@ export function CTA({ compact, className }: { compact?: boolean; className?: str
   return <MainButton label="Find my leaks" compact={compact} className={className} onClick={scrollToScan} />;
 }
 
-export function StickyCTA() {
+export function StickyCTA({ always }: { always?: boolean }) {
   const [show, setShow] = useState(false);
   useEffect(() => {
     const scan = document.getElementById("scan");
-    if (!scan) return;
+    if (!scan) {
+      if (!always) return;
+      const on = () => setShow(window.scrollY > 320);
+      on();
+      window.addEventListener("scroll", on, { passive: true });
+      return () => window.removeEventListener("scroll", on);
+    }
     const io = new IntersectionObserver(([e]) => setShow(!e.isIntersecting && e.boundingClientRect.top < 0), { threshold: 0 });
     io.observe(scan);
     return () => io.disconnect();
-  }, []);
+  }, [always]);
   return (
     <AnimatePresence>
       {show && (

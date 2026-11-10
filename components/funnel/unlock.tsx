@@ -68,7 +68,9 @@ export function UnlockProvider({
   const [authed, setAuthed] = useState(initialAuthed);
   const [paid, setPaid] = useState(initialPaid);
   const [plans, setPlans] = useState<UIPlan[]>([]);
-  const [view, setView] = useState<null | "auth" | "paywall" | "upgrade">(null);
+  const [view, setView] = useState<null | "auth" | "paywall" | "upgrade" | "offer">(null);
+  const [offerUntil, setOfferUntil] = useState<string | null>(null);
+  const offerAsked = useRef(false);
   const [upgradeTier, setUpgradeTier] = useState<2 | 3>(2);
   const [checkout, setCheckout] = useState<{ plan: UIPlan; period: "month" | "year" } | null>(null);
   const [film, setFilm] = useState<string | null>(null);
@@ -87,6 +89,18 @@ export function UnlockProvider({
     setView("paywall");
     event("paywall_view");
   }, []);
+  /** First ✕ on the paywall: one honest yearly offer (server-saved 30-minute window), never twice. */
+  const closePaywall = useCallback(async () => {
+    if (offerAsked.current || !authed || plans.every((p) => !p.yearly)) return setView(null);
+    offerAsked.current = true;
+    const r = await fetch("/api/offer", { method: "POST" })
+      .then((x) => x.json())
+      .catch(() => null);
+    if (r?.show && r.until) {
+      setOfferUntil(r.until);
+      setView("offer");
+    } else setView(null);
+  }, [authed, plans]);
   const unlock = useCallback(() => {
     if (!authed) setView("auth");
     else openPaywall();
@@ -169,8 +183,17 @@ export function UnlockProvider({
         </div>
       </Sheet>
 
-      <Sheet open={view === "paywall"} onClose={() => setView(null)} label="Choose your plan" mode="full" width={480}>
+      <Sheet open={view === "paywall"} onClose={closePaywall} label="Choose your plan" mode="full" width={480}>
         <Paywall plans={plans} personal={personal} onContinue={(plan, period) => setCheckout({ plan, period })} />
+      </Sheet>
+
+      <Sheet open={view === "offer"} onClose={() => setView(null)} label="Yearly offer" width={440}>
+        <OfferSheet
+          plan={plans.find((p) => p.featured && p.yearly) ?? plans.find((p) => p.yearly) ?? null}
+          until={offerUntil}
+          onContinue={(plan) => setCheckout({ plan, period: "year" })}
+          onClose={() => setView(null)}
+        />
       </Sheet>
 
       <Sheet open={view === "upgrade"} onClose={() => setView(null)} label="Upgrade" width={440}>
@@ -402,6 +425,62 @@ export function Paywall({
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+function useCountdown(until: string | null) {
+  const [left, setLeft] = useState(-1);
+  useEffect(() => {
+    if (!until) return;
+    const end = Date.parse(until);
+    const tick = () => setLeft(Math.max(0, end - Date.now()));
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+  }, [until]);
+  return left;
+}
+
+function OfferSheet({ plan, until, onContinue, onClose }: { plan: UIPlan | null; until: string | null; onContinue: (p: UIPlan) => void; onClose: () => void }) {
+  const left = useCountdown(until);
+  if (!plan?.yearly) return null;
+  const mm = String(Math.floor(left / 60000)).padStart(2, "0");
+  const ss = String(Math.floor((left % 60000) / 1000)).padStart(2, "0");
+  const monthlyYear = plan.price_cents * 12;
+  const save = Math.round((1 - plan.yearly.price_cents / monthlyYear) * 100);
+  return (
+    <div className="px-6 pb-[max(24px,env(safe-area-inset-bottom))] pt-12 md:px-8 md:pb-8">
+      <div className="label-mono text-muted">[ One-time offer ]</div>
+      <h2 className="mt-2 text-[26px] font-semibold leading-tight tracking-[-0.03em]">Before you go: {short(plan.name)} for a year, −{save}%.</h2>
+      <p className="mt-2 text-[15px] text-muted">Same leak report, same features. You just pay once a year instead of every month.</p>
+      <div className="mt-6 flex items-end justify-between rounded-[18px] border-2 border-fg bg-surface p-5">
+        <div>
+          <div className="font-semibold">{short(plan.name)} yearly</div>
+          <div className="num text-sm text-muted">
+            {money2(plan.yearly.price_cents)} / year · <s>{money2(monthlyYear)}</s>
+          </div>
+        </div>
+        <div className="text-right">
+          <span className="num block text-[30px] font-semibold leading-none tracking-tight">{plan.yearly.per_day}</span>
+          <span className="text-xs text-muted">/ day instead of {plan.per_day}</span>
+        </div>
+      </div>
+      {left > 0 ? (
+        <p className="num mt-3 text-center text-sm text-muted">
+          This offer is saved for you for <b className="text-fg">{mm}:{ss}</b>
+        </p>
+      ) : left < 0 ? (
+        <p className="mt-3 h-5" />
+      ) : (
+        <p className="mt-3 text-center text-sm text-muted">The 30 minutes are over, but the yearly price is still the real one.</p>
+      )}
+      <button onClick={() => onContinue(plan)} className="btn-main mt-5 flex h-15 w-full items-center justify-center rounded-full bg-lime text-[17px] font-semibold text-ink">
+        Take {short(plan.name)} yearly
+      </button>
+      <button onClick={onClose} className="mt-3 h-11 w-full rounded-full text-sm font-medium text-muted hover:text-fg">
+        No thanks
+      </button>
     </div>
   );
 }

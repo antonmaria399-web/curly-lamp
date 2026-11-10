@@ -2,6 +2,7 @@ import { cancelPlan, confirmCheckout, getPlan, getPlans, track } from "@/lib/kwo
 import { getUser } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { fail, json, sameOrigin } from "@/lib/http";
+import { logEvent, rewardPaid } from "@/lib/growth";
 
 export async function POST(req: Request) {
   if (!(await sameOrigin())) return fail("Bad origin", 403);
@@ -18,8 +19,17 @@ export async function POST(req: Request) {
     if (before.paid && before.plan && state.plan && before.plan.id !== state.plan.id) {
       cancelPlan(user.email, ref).catch(() => {});
     }
-    track("aha", user.email);
-    await supabaseAdmin().from("profiles").update({ last_plan: state }).eq("id", user.id);
+    const db = supabaseAdmin();
+    const { data: prof } = await db.from("profiles").select("last_plan, offer_until").eq("id", user.id).maybeSingle();
+    const lp = prof?.last_plan as { paid?: boolean; plan?: { id: number } | null } | null;
+    const isNewPayment = !lp?.paid || lp.plan?.id !== state.plan?.id;
+    if (isNewPayment) {
+      track("aha", user.email);
+      await logEvent("paid", { id: user.id }, `${state.plan?.id ?? ""}:${ref}`);
+      if (prof?.offer_until && Date.parse(prof.offer_until) > Date.now() - 5 * 60_000) await logEvent("offer_paid", { id: user.id, email: user.email });
+      await rewardPaid(user.id).catch(() => {});
+    }
+    await db.from("profiles").update({ last_plan: state }).eq("id", user.id);
   }
   const { plans } = await getPlans();
   const plan = plans.find((p) => p.id === state.plan?.id) ?? null;

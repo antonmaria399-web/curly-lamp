@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { Logo } from "@/components/ui/logo";
 import { usd } from "@/lib/cn";
+import { REWARD } from "@/lib/growth";
 import type { ReportResult } from "@/lib/types";
 
 async function load(id: string) {
@@ -24,8 +25,10 @@ export async function generateMetadata({ params }: PageProps<"/s/[id]">): Promis
 }
 
 /** Public, shared result: totals only (no merchant list, no bank, no file name). */
-export default async function SharedPage({ params }: PageProps<"/s/[id]">) {
+export default async function SharedPage({ params, searchParams }: PageProps<"/s/[id]">) {
   const r = await load((await params).id);
+  const i = (await searchParams).i;
+  const code = typeof i === "string" && /^[a-z0-9]{4,12}$/.test(i) ? i : null;
   if (!r) notFound();
   return (
     <main className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-night px-5 text-center text-white">
@@ -36,7 +39,8 @@ export default async function SharedPage({ params }: PageProps<"/s/[id]">) {
         <p className="mt-10 text-white/60">Someone found</p>
         <p className="num mt-2 text-[56px] font-semibold tracking-tight text-lime sm:text-[88px]">{usd(r.monthly_leaks)}</p>
         <p className="text-white/60">a month in forgotten subscriptions and fees ({r.leaks.length} charges).</p>
-        <Link href="/" className="btn-main mt-10 inline-flex h-16 items-center rounded-full bg-lime px-8 text-[17px] font-semibold text-ink">
+        {code && <p className="mt-8 text-sm text-white/60">You were invited: you both get {REWARD.friendSignup} extra scans when you sign up.</p>}
+        <Link href={code ? `/i/${code}` : "/"} prefetch={false} className="btn-main mt-10 inline-flex h-16 items-center rounded-full bg-lime px-8 text-[17px] font-semibold text-ink">
           Find my leaks
         </Link>
         <p className="num mt-4 text-xs uppercase tracking-[0.14em] text-white/40">Free to try · No bank login</p>

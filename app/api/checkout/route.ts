@@ -3,6 +3,7 @@ import { createCheckout, getPlans } from "@/lib/kwop";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getUser } from "@/lib/supabase/server";
 import { fail, json, sameOrigin } from "@/lib/http";
+import { logEvent } from "@/lib/growth";
 
 export async function POST(req: Request) {
   if (!(await sameOrigin())) return fail("Bad origin", 403);
@@ -21,6 +22,7 @@ export async function POST(req: Request) {
     const r = await createCheckout({ plan, period, email: user.email, k: k && /^[A-Za-z0-9]{1,12}$/.test(k) ? k : null });
     if (r.status === 409) return json({ error: "payments_off" }, 409);
     if (r.status >= 400 || !r.body.ref) return fail("Checkout is unavailable right now. Try again in a minute.", 502);
+    await logEvent("checkout", { id: user.id }, `${plan}:${period}:${r.body.ref}`);
     return json({ embed: r.body.embed ?? null, ref: r.body.ref, fallback_url: r.body.fallback_url ?? null });
   } catch (e) {
     console.error("[checkout]", (e as Error).message);

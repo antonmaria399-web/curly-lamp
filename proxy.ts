@@ -1,14 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-const APP_PATHS = ["/dashboard", "/upload", "/leaks", "/settings", "/account", "/reports", "/export", "/pricing"];
+const APP_PATHS = ["/dashboard", "/upload", "/leaks", "/settings", "/account", "/reports", "/export", "/pricing", "/invite"];
 const YEAR = 60 * 60 * 24 * 365;
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
   const url = request.nextUrl;
 
-  let user: { id: string } | null = null;
+  let user: { id: string; email?: string } | null = null;
   if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
     const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
       cookies: {
@@ -36,6 +36,12 @@ export async function proxy(request: NextRequest) {
   }
   if ((path === "/login" || path === "/signup") && user) redirect = new URL(url.searchParams.get("next") || "/dashboard", url);
 
+  // The owner's growth space: anyone else gets a plain 404 (also checked on the server in the page and its API).
+  const owner = (process.env.OWNER_EMAIL || "").trim().toLowerCase();
+  if ((path === "/admin" || path.startsWith("/admin/")) && (!owner || user?.email?.toLowerCase() !== owner)) {
+    return NextResponse.rewrite(new URL("/_admin-not-found", url), { status: 404 });
+  }
+
   const out = redirect ? NextResponse.redirect(redirect) : response;
   if (redirect) response.cookies.getAll().forEach((c) => out.cookies.set(c));
 
@@ -44,6 +50,9 @@ export async function proxy(request: NextRequest) {
   if (k && /^[A-Za-z0-9]{1,12}$/.test(k)) out.cookies.set("kwop_k", k, { maxAge: 60 * 60 * 24 * 30, sameSite: "lax", path: "/" });
   const plan = url.searchParams.get("plan");
   if (plan && plan.length <= 40) out.cookies.set("bdg_plan", plan, { maxAge: 60 * 60 * 24 * 30, sameSite: "lax", path: "/" });
+  // Creator link (?ref=<code>), kept like the utm_ parameters.
+  const ref = url.searchParams.get("ref");
+  if (ref && /^[A-Za-z0-9_-]{1,32}$/.test(ref) && path !== "/dashboard") out.cookies.set("bdg_ref", ref, { maxAge: 60 * 60 * 24 * 30, sameSite: "lax", path: "/" });
   const utm: Record<string, string> = {};
   url.searchParams.forEach((v, key) => {
     if (key.startsWith("utm_") && v.length <= 100) utm[key] = v;

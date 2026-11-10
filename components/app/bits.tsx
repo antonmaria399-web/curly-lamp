@@ -141,7 +141,9 @@ export function ShareButton({ id, shared: initial }: { id: string; shared: boole
       if (!r.ok) return setBusy(false);
       setShared(true);
     }
-    const url = `${location.origin}/s/${id}`;
+    const inv = await fetch("/api/invite").then((x) => (x.ok ? x.json() : null)).catch(() => null);
+    const url = `${location.origin}/s/${id}${inv?.code ? `?i=${inv.code}` : ""}`;
+    fetch("/api/event", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "share", detail: "report" }), keepalive: true }).catch(() => {});
     setBusy(false);
     try {
       if (navigator.share) {

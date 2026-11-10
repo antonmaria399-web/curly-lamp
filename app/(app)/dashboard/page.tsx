@@ -6,8 +6,12 @@ import { myActions, myProfile, myReports } from "@/lib/data";
 import { AppScanner, AutoUnlock, GoalCard, ReportList } from "@/components/app/bits";
 import { LeakMeter } from "@/components/funnel/report";
 import { usd } from "@/lib/cn";
+import { InviteCard, WhatsNew } from "@/components/app/invite";
+import { NEWS } from "@/lib/news";
 
 export const metadata: Metadata = { title: "Dashboard" };
+
+const isFuture = (t: number) => t > Date.now();
 
 export default async function Dashboard() {
   const viewer = await getViewer();
@@ -32,6 +36,8 @@ export default async function Dashboard() {
   const saved = actions.filter((a) => a.status === "cancelled").reduce((s, a) => s + Number(a.monthly), 0);
   const full = latest && !("locked" in latest.result) ? latest.result : null;
   const first = viewer.user!.email.split("@")[0];
+  const nextDue = latest ? Date.parse(latest.created_at) + 30 * 86400000 : 0;
+  const bonus = Number(profile?.bonus_scans ?? 0);
 
   return (
     <div className="space-y-8">
@@ -76,11 +82,33 @@ export default async function Dashboard() {
             <div className="num mt-2 text-2xl font-semibold">
               {used} <span className="text-base font-normal text-muted">/ {viewer.limits.scans}</span>
             </div>
+            {bonus > 0 && <p className="num mt-1 text-xs text-gain">+{bonus} extra scans from invites</p>}
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-2">
               <div className="h-full rounded-full bg-fg" style={{ width: `${Math.min(100, (used / viewer.limits.scans) * 100)}%` }} />
             </div>
           </div>
         </div>
+      </div>
+
+      {latest && (
+        <div className="rounded-[20px] border border-line bg-surface p-5">
+          <div className="label-mono text-muted">[ Your monthly check-up ]</div>
+          <p className="mt-2">
+            {isFuture(nextDue) ? (
+              <>
+                Next statement around <b className="num">{new Date(nextDue).toLocaleDateString("en-US", { month: "long", day: "numeric" })}</b>. Scan it to catch new
+                subscriptions, price hikes and fees that came back.
+              </>
+            ) : (
+              <>Your new statement is probably out. Scan it to catch what changed since your last report.</>
+            )}
+          </p>
+        </div>
+      )}
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <InviteCard />
+        <WhatsNew items={NEWS.filter((n) => n.id > (profile?.last_seen_news ?? 0)).map((n) => ({ ...n }))} />
       </div>
 
       <GoalCard goal={profile?.goal_monthly ? Number(profile.goal_monthly) : null} saved={saved} enabled={viewer.limits.goals} />

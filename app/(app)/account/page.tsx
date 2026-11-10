@@ -3,6 +3,7 @@ import { getViewer } from "@/lib/viewer";
 import { myProfile } from "@/lib/data";
 import { shortName } from "@/lib/quotas";
 import { BillingCard, DangerZone, ProfileForm } from "@/components/app/settings-forms";
+import { InviteCard } from "@/components/app/invite";
 
 export const metadata: Metadata = { title: "Account" };
 
@@ -26,6 +27,10 @@ export default async function AccountPage() {
           tier={viewer.tier}
         />
         <p className="text-xs text-muted">Payments are processed by Whop for Budgeto. Prices in USD.</p>
+      </section>
+      <section className="space-y-3" id="invite">
+        <h2 className="text-lg font-semibold">Invite friends</h2>
+        <InviteCard />
       </section>
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">Language</h2>

@@ -22,12 +22,14 @@ export default function Privacy() {
         <li>Vercel: hosting.</li>
         <li>Google Gemini: reads the statement you upload to list its transactions. Files are sent for that one request.</li>
         <li>Whop, through Kwop: payments. We never see your card number.</li>
-        <li>Kwop: visit analytics on our public pages (landing, sign-up, log-in), and plan and payment status.</li>
+        <li>Kwop: visit analytics by Kwop on our public pages (landing, sign-up, log-in, guides), and plan and payment status.</li>
+        <li>Resend: sends our emails (your report is ready, a weekly recap). Every email has a one-click unsubscribe.</li>
       </ul>
       <h2>Your choices</h2>
       <ul>
         <li>Delete a report: Upload → Your reports → trash icon.</li>
         <li>Delete everything: Account → Delete my account. Your data is removed right away.</li>
+        <li>Emails: tap Unsubscribe at the bottom of any email.</li>
         <li>Shared links show only your totals (no bank, no merchants list) and only if you tap Share.</li>
       </ul>
       <h2>Cookies</h2>

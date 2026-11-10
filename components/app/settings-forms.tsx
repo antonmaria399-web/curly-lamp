@@ -133,9 +133,19 @@ export function RulesEditor({ rules, enabled }: { rules: Rule[]; enabled: boolea
   );
 }
 
+const REASONS = [
+  ["too_expensive", "It's too expensive"],
+  ["not_using", "I'm not using it"],
+  ["missing", "Something is missing"],
+  ["other", "Another reason"],
+] as const;
+type Reason = (typeof REASONS)[number][0];
+
 export function BillingCard({ planName, until, paid, status, tier }: { planName: string | null; until: string | null; paid: boolean; status: string | null; tier: number }) {
-  const { openUpgrade, openPaywall } = useUnlock();
-  const [step, setStep] = useState<0 | 1>(0);
+  const { openUpgrade, openPaywall, plans } = useUnlock();
+  const [step, setStep] = useState<"idle" | "why" | "answer">("idle");
+  const [reason, setReason] = useState<Reason | null>(null);
+  const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ message: string; manage_url?: string } | null>(null);
   if (!paid)
@@ -147,6 +157,24 @@ export function BillingCard({ planName, until, paid, status, tier }: { planName:
         </Button>
       </div>
     );
+  const current = plans.find((p) => planName && p.name.toLowerCase().endsWith(planName.toLowerCase()));
+  const pick = async (r: Reason) => {
+    setReason(r);
+    setStep("answer");
+    fetch("/api/cancel", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ reason: r }) }).catch(() => {});
+  };
+  const cancelNow = async () => {
+    setBusy(true);
+    const r = await fetch("/api/cancel", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ confirm: true, reason: reason ?? undefined, note: reason === "missing" && note.trim() ? note.trim() : undefined }),
+    });
+    const j = await r.json().catch(() => ({ message: "Try again in a minute." }));
+    setBusy(false);
+    setMsg({ message: j.message || j.error, manage_url: j.manage_url });
+    setStep("idle");
+  };
   return (
     <div className="rounded-2xl border border-line bg-surface p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -167,28 +195,67 @@ export function BillingCard({ planName, until, paid, status, tier }: { planName:
       </div>
       <div className="mt-5 flex flex-wrap gap-2">
         {tier < 3 && <Button onClick={() => openUpgrade()}>Change plan</Button>}
-        {step === 0 ? (
-          <Button variant="outline" onClick={() => setStep(1)}>
+        {step === "idle" && (
+          <Button variant="outline" onClick={() => setStep("why")}>
             Cancel my subscription
-          </Button>
-        ) : (
-          <Button
-            variant="danger"
-            loading={busy}
-            onClick={async () => {
-              setBusy(true);
-              const r = await fetch("/api/cancel", { method: "POST" });
-              const j = await r.json().catch(() => ({ message: "Try again in a minute." }));
-              setBusy(false);
-              setMsg({ message: j.message || j.error, manage_url: j.manage_url });
-              setStep(0);
-            }}
-          >
-            Yes, cancel it
           </Button>
         )}
       </div>
-      {step === 1 && <p className="mt-3 text-sm text-muted">You keep access until the end of the period you paid for.</p>}
+
+      {step === "why" && (
+        <div className="mt-5 border-t border-line pt-5">
+          <p className="font-medium">Before you go: why are you leaving?</p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {REASONS.map(([k, l]) => (
+              <button key={k} onClick={() => pick(k)} className="rounded-xl border border-line px-4 py-3 text-left text-sm font-medium transition hover:border-fg/30 active:scale-[0.98]">
+                {l}
+              </button>
+            ))}
+          </div>
+          <button onClick={cancelNow} disabled={busy} className="mt-3 text-sm text-muted underline underline-offset-4 hover:text-fg">
+            Skip, cancel anyway
+          </button>
+        </div>
+      )}
+
+      {step === "answer" && reason && (
+        <div className="mt-5 space-y-3 border-t border-line pt-5 text-sm">
+          {reason === "too_expensive" && current?.yearly && (
+            <p>
+              Paying yearly brings {current.name.replace(/^Budgeto\s+/i, "")} to <b className="num">{current.yearly.per_day}/day</b> instead of{" "}
+              <span className="num">{current.per_day}</span>. You can switch from Change plan.
+            </p>
+          )}
+          {reason === "too_expensive" && !current?.yearly && <p>Thanks for telling us. A smaller plan may fit better: see Change plan.</p>}
+          {reason === "not_using" && (
+            <p>Fair. Leaks come back quietly: a free trial that turns paid, a price hike. If you cancel, come back once a month and scan your new statement. Your past reports stay here.</p>
+          )}
+          {reason === "missing" && (
+            <div className="space-y-2">
+              <p>Tell us what&apos;s missing. The founder reads every answer.</p>
+              <textarea value={note} onChange={(e) => setNote(e.target.value.slice(0, 500))} rows={3} className="w-full rounded-xl border border-line bg-surface p-3 outline-none focus:border-fg/40" placeholder="I wish Budgeto could…" />
+            </div>
+          )}
+          {reason === "other" && <p>Thanks for telling us. You keep access until the end of the period you paid for.</p>}
+          <div className="flex flex-wrap gap-2 pt-1">
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (reason === "missing" && note.trim())
+                  fetch("/api/cancel", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ reason, note: note.trim() }) }).catch(() => {});
+                setStep("idle");
+              }}
+            >
+              Keep my plan
+            </Button>
+            <Button variant="danger" loading={busy} onClick={cancelNow}>
+              Cancel anyway
+            </Button>
+          </div>
+          <p className="text-xs text-muted">You keep access until the end of the period you paid for.</p>
+        </div>
+      )}
+
       {msg && (
         <p className="mt-3 rounded-xl bg-surface-2 p-3 text-sm">
           {msg.message}{" "}
