@@ -20,7 +20,7 @@ export default function Terms() {
         <li>You can try Budgeto for free (up to 3 scans a day). Full reports need a paid plan.</li>
         <li>Plans renew automatically every month or year until you cancel. Prices are in USD.</li>
         <li>Each plan includes a number of statement scans per billing period, shown before you pay.</li>
-        <li>Cancel anytime in Account → Billing. You keep access until the end of the period you paid for.</li>
+        <li>Cancel anytime in Account → Billing. You are not charged again after you cancel.</li>
         <li>Payments are processed by Whop through Kwop. Their terms apply to the payment itself.</li>
       </ul>
       <h2>Fair use</h2>

@@ -188,7 +188,7 @@ export function BillingCard({ planName, until, paid, status, tier }: { planName:
           </Button>
         )}
       </div>
-      {step === 1 && <p className="mt-3 text-sm text-muted">You keep access until the end of the period you paid for.</p>}
+      {step === 1 && <p className="mt-3 text-sm text-muted">After this, you won&apos;t be charged again.</p>}
       {msg && (
         <p className="mt-3 rounded-xl bg-surface-2 p-3 text-sm">
           {msg.message}{" "}

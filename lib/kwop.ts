@@ -78,7 +78,10 @@ export async function getPlan(email: string | null | undefined, opts: { fresh?: 
     const r = await kwop("/plan?email=" + encodeURIComponent(key));
     if (!r.ok) throw new Error("kwop plan " + r.status);
     const j = await r.json();
-    const state: PlanState = { paid: Boolean(j.paid), plan: j.plan ?? null, status: j.status ?? null, until: j.until ?? null };
+    // A cancelled plan that Kwop still reports with a future "until" stays usable until then (they paid for that period).
+    const paidUntil = j.until ? Date.parse(j.until) : NaN;
+    const stillPaid = !j.paid && j.plan && Number.isFinite(paidUntil) && paidUntil > Date.now();
+    const state: PlanState = { paid: Boolean(j.paid) || Boolean(stillPaid), plan: j.plan ?? null, status: j.status ?? null, until: j.until ?? null };
     // Shape only (no email): to see what Kwop returns for cancelled / ended plans.
     if (j.status && j.status !== "active") console.log("[kwop] plan state", JSON.stringify({ paid: j.paid, status: j.status, until: j.until, plan: j.plan?.id ?? null }));
     planCache.set(key, { at: Date.now(), state });

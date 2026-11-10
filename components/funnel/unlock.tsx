@@ -195,7 +195,7 @@ const FAQ = [
     q: "Will it work with my bank?",
     a: "Yes, if your bank lets you download a PDF statement (Chase, Bank of America, Wells Fargo, Capital One, credit unions and cards all do). You already saw it work on yours.",
   },
-  { q: "Can I cancel anytime?", a: "Yes. Account → Billing → Cancel my subscription. Two taps, no call, no email. You keep access until the end of the period you paid for." },
+  { q: "Can I cancel anytime?", a: "Yes. Account → Billing → Cancel my subscription. Two taps, no call, no email. You're never charged again after that." },
   { q: "What happens right after I pay?", a: "Your full leak report unlocks right here, in seconds. No email to check, no reload." },
 ];
 
@@ -428,7 +428,7 @@ function UpgradeSheet({ plan, onContinue }: { plan: UIPlan | null; onContinue: (
       <button onClick={() => onContinue(plan)} className="btn-main mt-6 flex h-15 w-full items-center justify-center rounded-full bg-lime text-[17px] font-semibold text-ink">
         Upgrade to {short(plan.name)}
       </button>
-      <p className="mt-3 text-center text-xs text-muted">Your current plan stops at the end of its period. Never billed twice.</p>
+      <p className="mt-3 text-center text-xs text-muted">Your current plan is replaced by the new one. Never billed twice.</p>
     </div>
   );
 }
