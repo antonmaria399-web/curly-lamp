@@ -48,3 +48,6 @@ playwright-report
 shots
 supabase/.temp
 .claude/settings.local.json
+
+# marketing videos (sent to the owner, not part of the app)
+/videos/
