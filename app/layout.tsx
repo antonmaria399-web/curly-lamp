@@ -37,8 +37,10 @@ const themeScript = `try{var t=localStorage.getItem('budgeto-theme');var d=t?t==
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.variable} ${mono.variable} antialiased`} suppressHydrationWarning>
+    // translate="no": browser auto-translation rewrites text nodes and crashes React on the next update (seen live on /settings).
+    <html lang="en" translate="no" className={`${inter.variable} ${mono.variable} antialiased`} suppressHydrationWarning>
       <head>
+        <meta name="google" content="notranslate" />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="min-h-dvh">{children}</body>
