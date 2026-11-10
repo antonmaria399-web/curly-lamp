@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: "Budgeto", statusBarStyle: "black-translucent" },
   openGraph: { type: "website", siteName: "Budgeto" },
   twitter: { card: "summary_large_image" },
+  // Google Search Console ownership (URL-prefix property https://budgetoo-nine.vercel.app/). Keep it.
+  verification: { google: "-D80IxMd5HcAc_IliP86nRLS5flb-01nNoFAlx5wjiQ" },
 };
 
 export const viewport: Viewport = {
