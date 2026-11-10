@@ -9,7 +9,10 @@ import { Phone } from "./phone";
 /** Every main button leads into the funnel: the hero's drop zone. */
 export function scrollToScan() {
   const el = document.getElementById("scan");
-  if (!el) return;
+  if (!el) {
+    window.location.href = "/?home=1#scan"; // other public pages (/about): go to the drop zone
+    return;
+  }
   el.scrollIntoView({ behavior: "smooth", block: "center" });
   el.animate([{ boxShadow: "0 0 0 0 rgba(200,255,61,0)" }, { boxShadow: "0 0 0 8px rgba(200,255,61,.35)" }, { boxShadow: "0 0 0 0 rgba(200,255,61,0)" }], { duration: 1200, delay: 450 });
 }
@@ -231,13 +234,12 @@ export function FAQ({ items }: { items: { q: string; a: string }[] }) {
             {f.q}
             <ChevronDown className={cn("h-5 w-5 shrink-0 transition-transform", open === i && "rotate-180")} />
           </button>
-          <AnimatePresence initial={false}>
-            {open === i && (
-              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                <p className="pb-5 pr-8 text-[15px] leading-relaxed text-muted">{f.a}</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* Answers stay in the HTML even when closed: crawlers and AI answer engines read them. */}
+          <div className={cn("grid transition-[grid-template-rows,opacity] duration-300", open === i ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")}>
+            <div className="overflow-hidden" aria-hidden={open !== i}>
+              <p className="pb-5 pr-8 text-[15px] leading-relaxed text-muted">{f.a}</p>
+            </div>
+          </div>
         </div>
       ))}
     </div>

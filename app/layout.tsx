@@ -1,23 +1,22 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { ONE_LINER, SITE_URL } from "@/lib/identity";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "swap" });
 const mono = JetBrains_Mono({ variable: "--font-jbmono", subsets: ["latin"], display: "swap" });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || (process.env.NODE_ENV === "production" ? SITE_URL : "http://localhost:3000")),
   title: {
     default: "Budgeto — Find the subscriptions you forgot you pay",
     template: "%s · Budgeto",
   },
-  description:
-    "Drop your bank statement PDF. Budgeto's AI flags forgotten subscriptions and hidden fees in seconds. No bank login, no manual entry.",
+  description: ONE_LINER,
   applicationName: "Budgeto",
   appleWebApp: { capable: true, title: "Budgeto", statusBarStyle: "black-translucent" },
-  openGraph: { type: "website", siteName: "Budgeto" },
+  openGraph: { type: "website", siteName: "Budgeto", locale: "en_US" },
   twitter: { card: "summary_large_image" },
 };
 

@@ -9,6 +9,15 @@ import { CTA, FAQ, FeatureLoop, HeroNotifications, HowPhone, StickyCTA } from "@
 import { Phone } from "@/components/landing/phone";
 import { Reveal, Stagger, StaggerItem, CountUp } from "@/components/ui/reveal";
 import { getViewer } from "@/lib/viewer";
+import type { Metadata } from "next";
+import { ONE_LINER } from "@/lib/identity";
+import { geoFaq, getPricing, ldJson, pageJsonLd } from "@/lib/geo";
+
+export const metadata: Metadata = {
+  description: ONE_LINER,
+  alternates: { canonical: "/" },
+  openGraph: { url: "/", description: ONE_LINER },
+};
 
 export const dynamic = "force-dynamic";
 
@@ -33,18 +42,16 @@ const QUESTIONS = [
     q: "Does Budgeto cancel subscriptions for me?",
     a: "It gives you the exact steps for each one (where to click, or who to call) so you cancel it yourself in a minute. No one gets access to your accounts.",
   },
-  {
-    q: "How much does it cost?",
-    a: "You try it free first. The plans show up once your first leak report is ready.",
-  },
 ];
 
 export default async function Home() {
-  const viewer = await getViewer();
+  const [viewer, plans] = await Promise.all([getViewer(), getPricing()]);
+  const faq = [...geoFaq(plans), ...QUESTIONS];
   const hasVideo = existsSync(path.join(process.cwd(), "public", "vsl.mp4"));
 
   return (
     <main className="bg-night text-white">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(pageJsonLd({ path: "/", title: "Budgeto: find the subscriptions you forgot you pay", plans, faq })) }} />
       <TopBar />
 
       {/* HERO: the product itself */}
@@ -312,7 +319,7 @@ export default async function Home() {
             <h2 className="title-xl mt-4 text-[38px] sm:text-[52px]">Before you upload.</h2>
           </Reveal>
           <Reveal delay={0.06} className="mt-12">
-            <FAQ items={QUESTIONS} />
+            <FAQ items={faq} />
           </Reveal>
         </div>
       </section>

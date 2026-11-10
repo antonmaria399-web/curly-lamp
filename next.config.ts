@@ -12,6 +12,20 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  // One canonical domain: on production, every other host (budgetoo-bufgeto.vercel.app, deployment URLs…)
+  // redirects to it. http → https is done by Vercel.
+  async redirects() {
+    const canonical = process.env.NEXT_PUBLIC_SITE_URL ? new URL(process.env.NEXT_PUBLIC_SITE_URL).host : null;
+    if (process.env.VERCEL_ENV !== "production" || !canonical) return [];
+    return [
+      {
+        source: "/:path*",
+        missing: [{ type: "host", value: canonical }],
+        destination: `https://${canonical}/:path*`,
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
