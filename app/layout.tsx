@@ -16,6 +16,8 @@ export const metadata: Metadata = {
   description:
     "Drop your bank statement PDF. Budgeto's AI flags forgotten subscriptions and hidden fees in seconds. No bank login, no manual entry.",
   applicationName: "Budgeto",
+  // Google Search Console ownership (HTML tag method): set GOOGLE_SITE_VERIFICATION on Vercel to the content="…" value.
+  ...(process.env.GOOGLE_SITE_VERIFICATION ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } } : {}),
   appleWebApp: { capable: true, title: "Budgeto", statusBarStyle: "black-translucent" },
   openGraph: { type: "website", siteName: "Budgeto", locale: "en_US", images: [{ url: "/og/home", width: 1200, height: 630, alt: "Budgeto: your leak report in 5 seconds" }] },
   twitter: { card: "summary_large_image", images: [{ url: "/og/home", width: 1200, height: 630, alt: "Budgeto: your leak report in 5 seconds" }] },
