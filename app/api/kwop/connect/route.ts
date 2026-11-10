@@ -13,11 +13,18 @@ export const runtime = "nodejs";
 export async function POST() {
   const secret = process.env.KWOP_CONNECT_SECRET;
   const site = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
-  if (!secret || secret.length < 32 || !site?.startsWith("https://")) return fail("Not found", 404);
-  const got = Buffer.from(((await headers()).get("authorization") || "").replace(/^Bearer\s+/i, ""));
-  const want = Buffer.from(secret);
-  if (got.length !== want.length || !timingSafeEqual(got, want)) return fail("Not found", 404);
-  if (new URL((await headers()).get("x-url") || "http://x/").searchParams.has("check") || (await headers()).get("x-check") === "1") {
+  const h = await headers();
+  if (!secret || secret.length < 32 || !site?.startsWith("https://")) {
+    console.error("[kwop connect] not configured", { secret: Boolean(secret), site: Boolean(site) });
+    return fail("Not found", 404);
+  }
+  const got = Buffer.from((h.get("x-connect-secret") || h.get("authorization") || "").replace(/^Bearer\s+/i, "").trim());
+  const want = Buffer.from(secret.trim());
+  if (got.length !== want.length || !timingSafeEqual(got, want)) {
+    console.error("[kwop connect] bad secret", { got: got.length, want: want.length });
+    return fail("Not found", 404);
+  }
+  if (h.get("x-check") === "1") {
     // Shape only, never the key: helps the owner fix a bad paste.
     const raw = process.env.KWOP_API || "";
     return json({
