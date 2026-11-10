@@ -34,6 +34,7 @@ export async function POST() {
       has_space: /\s/.test(raw),
       slashes_after_app: (raw.split("/app/")[1] || "").split("/").length - 1,
       key_part_length: (raw.split("/app/")[1] || "").trim().length,
+      after_key: ((raw.split("/app/")[1] || "").split("/").slice(1).join("/") || "").slice(0, 12),
     });
   }
   try {

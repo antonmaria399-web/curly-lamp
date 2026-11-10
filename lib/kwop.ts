@@ -21,7 +21,10 @@ const API = () => {
   const v = process.env.KWOP_API;
   if (!v) throw new Error("KWOP_API missing");
   // Tolerate copy-paste noise: spaces, quotes, a "KWOP_API=" prefix, trailing slash.
-  return v.trim().replace(/^KWOP_API=/, "").replace(/^["']|["']$/g, "").trim().replace(/\/+$/, "");
+  const clean = v.trim().replace(/^KWOP_API=/, "").replace(/^["']|["']$/g, "").trim();
+  // Keep only https://kwop.io/api/v2/app/<key>: drop anything pasted after the key (e.g. "/plans").
+  const m = clean.match(/^https:\/\/kwop\.io\/api\/v2\/app\/[^/\s?#]+/);
+  return m ? m[0] : clean.replace(/\/+$/, "");
 };
 
 async function kwop(path: string, init?: RequestInit & { timeoutMs?: number }) {
