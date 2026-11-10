@@ -79,6 +79,8 @@ export async function getPlan(email: string | null | undefined, opts: { fresh?: 
     if (!r.ok) throw new Error("kwop plan " + r.status);
     const j = await r.json();
     const state: PlanState = { paid: Boolean(j.paid), plan: j.plan ?? null, status: j.status ?? null, until: j.until ?? null };
+    // Shape only (no email): to see what Kwop returns for cancelled / ended plans.
+    if (j.status && j.status !== "active") console.log("[kwop] plan state", JSON.stringify({ paid: j.paid, status: j.status, until: j.until, plan: j.plan?.id ?? null }));
     planCache.set(key, { at: Date.now(), state });
     return state;
   } catch (e) {
