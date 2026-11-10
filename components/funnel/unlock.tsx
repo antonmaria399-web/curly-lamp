@@ -325,7 +325,7 @@ export function Paywall({
         <div className="mt-6">
           {cta}
           <p className="num mt-2.5 text-center text-xs text-muted">
-            {due} a {y ? "year" : "month"} + Whop&apos;s small service fee · Cancel anytime
+            {due} due today, then every {y ? "year" : "month"} · Cancel anytime
           </p>
         </div>
 
