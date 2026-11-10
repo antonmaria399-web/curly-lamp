@@ -22,8 +22,49 @@ export async function POST(req: Request) {
   const viewer = await getViewer();
   const db = supabaseAdmin();
 
-  // Limits: free = 3 a day per device AND per IP (and per account); paid = plan quota per billing period.
-  if (viewer.tier === 0) {
+  let bytes: Uint8Array;
+  let mime: string;
+  let name: string;
+  let isSample = false;
+  const ct = req.headers.get("content-type") || "";
+  if (ct.includes("multipart/form-data")) {
+    const form = await req.formData().catch(() => null);
+    const sample = form?.get("sample");
+    const file = form?.get("file");
+    if (sample === "1") {
+      bytes = new Uint8Array(await readFile(path.join(process.cwd(), "public", "sample-statement.pdf")));
+      mime = "application/pdf";
+      name = "Sample statement.pdf";
+      isSample = true;
+    } else if (file && typeof file === "object" && "arrayBuffer" in file) {
+      const f = file as File;
+      if (f.size === 0) return fail("This file is empty.");
+      if (f.size > MAX) return fail("This file is over 10 MB. Export a shorter period from your bank.");
+      mime = f.type || (f.name.toLowerCase().endsWith(".pdf") ? "application/pdf" : "");
+      if (!TYPES.includes(mime)) return fail("Upload a PDF statement (or a photo of it).");
+      bytes = new Uint8Array(await f.arrayBuffer());
+      if (mime === "application/pdf" && !(bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46)) {
+        return fail("This file isn't a valid PDF.");
+      }
+      name = String(f.name || "statement.pdf").replace(/[^\w .()\-]/g, "").slice(0, 80) || "statement.pdf";
+    } else return fail("Choose a PDF statement first.");
+  } else return fail("Choose a PDF statement first.");
+
+  // Limits. The bundled sample is our own file, read by the text parser (no AI cost): it never uses a free try,
+  // only a light per-device cap against spam. Real statements: free = 3 a day per device AND per IP (and per
+  // account); paid = plan quota per billing period.
+  if (isSample) {
+    if (device) {
+      const since = new Date(Date.now() - 86400000).toISOString();
+      const { count } = await db
+        .from("reports")
+        .select("id", { count: "exact", head: true })
+        .eq("device_id", device)
+        .eq("file_name", "Sample statement.pdf")
+        .gte("created_at", since);
+      if ((count ?? 0) >= 20) return fail("You've tried the sample a lot today. Upload your own statement instead.", 429, { code: "sample_limit" });
+    }
+  } else if (viewer.tier === 0) {
     const since = new Date(Date.now() - 86400000).toISOString();
     const q = (col: string, val: string) =>
       db.from("tries").select("id", { count: "exact", head: true }).eq(col, val).gte("created_at", since);
@@ -43,32 +84,6 @@ export async function POST(req: Request) {
     }
   }
 
-  let bytes: Uint8Array;
-  let mime: string;
-  let name: string;
-  const ct = req.headers.get("content-type") || "";
-  if (ct.includes("multipart/form-data")) {
-    const form = await req.formData().catch(() => null);
-    const sample = form?.get("sample");
-    const file = form?.get("file");
-    if (sample === "1") {
-      bytes = new Uint8Array(await readFile(path.join(process.cwd(), "public", "sample-statement.pdf")));
-      mime = "application/pdf";
-      name = "Sample statement.pdf";
-    } else if (file && typeof file === "object" && "arrayBuffer" in file) {
-      const f = file as File;
-      if (f.size === 0) return fail("This file is empty.");
-      if (f.size > MAX) return fail("This file is over 10 MB. Export a shorter period from your bank.");
-      mime = f.type || (f.name.toLowerCase().endsWith(".pdf") ? "application/pdf" : "");
-      if (!TYPES.includes(mime)) return fail("Upload a PDF statement (or a photo of it).");
-      bytes = new Uint8Array(await f.arrayBuffer());
-      if (mime === "application/pdf" && !(bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46)) {
-        return fail("This file isn't a valid PDF.");
-      }
-      name = String(f.name || "statement.pdf").replace(/[^\w .()\-]/g, "").slice(0, 80) || "statement.pdf";
-    } else return fail("Choose a PDF statement first.");
-  } else return fail("Choose a PDF statement first.");
-
   // Custom savings rules (Power).
   let rules: { kind: string; value: string }[] = [];
   if (viewer.user && viewer.limits.rules) {
@@ -78,7 +93,7 @@ export async function POST(req: Request) {
 
   let result;
   try {
-    result = await scanStatement(bytes, mime, rules);
+    result = await scanStatement(bytes, mime, rules, { textOnly: isSample });
   } catch (e) {
     if (e instanceof ScanError) return fail(e.message, 422, { code: e.code });
     console.error("[scan]", e);
@@ -94,7 +109,7 @@ export async function POST(req: Request) {
     console.error("[scan] insert", error.message);
     return fail("We couldn't save your report. Try again.", 500);
   }
-  if (viewer.tier === 0) await db.from("tries").insert({ device_id: device, ip, user_id: viewer.user?.id ?? null });
+  if (viewer.tier === 0 && !isSample) await db.from("tries").insert({ device_id: device, ip, user_id: viewer.user?.id ?? null });
   if (viewer.user) track("feature_used", viewer.user.email, "pdf_statement_scan");
 
   const out = viewer.tier === 0 ? lock(result) : gate(result, { fees: viewer.limits.fees });

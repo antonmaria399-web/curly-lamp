@@ -192,6 +192,7 @@ export async function scanStatement(
   file: Uint8Array,
   mime: string,
   rules: { kind: string; value: string }[] = [],
+  opts: { textOnly?: boolean } = {},
 ): Promise<ReportResult> {
   const isPdf = mime === "application/pdf";
   // A text PDF is read instantly by the built-in parser. Gemini reads it better (cleaner names), but when
@@ -199,7 +200,8 @@ export async function scanStatement(
   let text: Awaited<ReturnType<typeof withText>> | null = null;
   if (isPdf) text = await withText(file).catch(() => null);
   const quick = Boolean(text && text.txns.length > 0);
-  if (aiEnabled()) {
+  // textOnly (the bundled sample): the parser reads it perfectly, so no AI call at all.
+  if (aiEnabled() && !(opts.textOnly && quick)) {
     try {
       const g = await withGemini(file, mime, quick ? 9_000 : 48_000, quick ? 2 : 4);
       if (g.txns.length > 0) return analyze(g.txns, { bank: g.bank, period: g.period, engine: "gemini", hints: g.hints }, rules);
