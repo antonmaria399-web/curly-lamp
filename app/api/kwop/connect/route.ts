@@ -17,6 +17,18 @@ export async function POST() {
   const got = Buffer.from(((await headers()).get("authorization") || "").replace(/^Bearer\s+/i, ""));
   const want = Buffer.from(secret);
   if (got.length !== want.length || !timingSafeEqual(got, want)) return fail("Not found", 404);
+  if (new URL((await headers()).get("x-url") || "http://x/").searchParams.has("check") || (await headers()).get("x-check") === "1") {
+    // Shape only, never the key: helps the owner fix a bad paste.
+    const raw = process.env.KWOP_API || "";
+    return json({
+      set: raw.length > 0,
+      length: raw.length,
+      starts_ok: raw.trim().startsWith("https://kwop.io/api/v2/app/kwk_"),
+      has_space: /\s/.test(raw),
+      slashes_after_app: (raw.split("/app/")[1] || "").split("/").length - 1,
+      key_part_length: (raw.split("/app/")[1] || "").trim().length,
+    });
+  }
   try {
     return json({ url: site, kwop: await connectApp(site) });
   } catch (e) {
