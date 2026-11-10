@@ -1,12 +1,20 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { SITE_HOST, SITE_URL, isPrivatePath } from "@/lib/seo";
 
 const APP_PATHS = ["/dashboard", "/upload", "/leaks", "/settings", "/account", "/reports", "/export", "/pricing"];
 const YEAR = 60 * 60 * 24 * 365;
 
 export async function proxy(request: NextRequest) {
-  let response = NextResponse.next({ request });
   const url = request.nextUrl;
+
+  // One canonical domain: any other host serving the production build (other *.vercel.app aliases) → 301.
+  const host = request.headers.get("host") || "";
+  if (process.env.VERCEL_ENV === "production" && host && host !== SITE_HOST) {
+    return NextResponse.redirect(`${SITE_URL}${url.pathname}${url.search}`, 301);
+  }
+
+  let response = NextResponse.next({ request });
 
   let user: { id: string } | null = null;
   if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -51,6 +59,9 @@ export async function proxy(request: NextRequest) {
   if (Object.keys(utm).length) out.cookies.set("bdg_src", JSON.stringify(utm), { maxAge: 60 * 60 * 24 * 30, sameSite: "lax", path: "/" });
 
   // Anonymous device id (for the free-try limit and to attach a try to the account at sign-up).
+  // Sign-in, the app, account, checkout, API, shared results: never indexed.
+  if (isPrivatePath(path)) out.headers.set("X-Robots-Tag", "noindex, nofollow");
+
   if (!request.cookies.get("bdg_dev")) {
     out.cookies.set("bdg_dev", crypto.randomUUID(), { maxAge: YEAR, sameSite: "lax", path: "/", httpOnly: true, secure: url.protocol === "https:" });
   }
@@ -58,5 +69,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon|apple-icon|manifest.webmanifest|sample-statement.pdf|.*\\.(?:svg|png|jpg|jpeg|webp|ico|mp4|js|css)$).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon|apple-icon|manifest.webmanifest|sample-statement.pdf|robots.txt|sitemap.xml|.*\\.txt$|.*\\.(?:svg|png|jpg|jpeg|webp|ico|mp4|js|css)$).*)"],
 };

@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import { Legal } from "@/components/legal";
+import { canonical } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Terms", description: "The short, plain-English terms of Budgeto." };
+export const metadata: Metadata = {
+  title: "Terms",
+  description: "The short, plain-English terms of Budgeto: what it is, free tries, plans, cancelling and your data.",
+  alternates: { canonical: canonical("/terms") },
+};
 
 export default function Terms() {
   return (

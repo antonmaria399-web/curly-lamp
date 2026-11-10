@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import { Legal } from "@/components/legal";
+import { canonical } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Privacy", description: "What Budgeto keeps, why, and how to delete it." };
+export const metadata: Metadata = {
+  title: "Privacy",
+  description: "What Budgeto keeps from your bank statement, why, and how to delete it. Your PDF is read once and never stored.",
+  alternates: { canonical: canonical("/privacy") },
+};
 
 export default function Privacy() {
   return (

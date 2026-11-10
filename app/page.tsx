@@ -8,9 +8,19 @@ import { VSL } from "@/components/landing/vsl";
 import { CTA, FAQ, FeatureLoop, HeroNotifications, HowPhone, StickyCTA } from "@/components/landing/bits";
 import { Phone } from "@/components/landing/phone";
 import { Reveal, Stagger, StaggerItem, CountUp } from "@/components/ui/reveal";
+import type { Metadata } from "next";
 import { getViewer } from "@/lib/viewer";
+import { canonical } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: { absolute: "Budgeto — Find the subscriptions you forgot you pay" },
+  description:
+    "Drop your bank statement PDF. Budgeto's AI flags forgotten subscriptions and hidden fees in seconds. No bank login, no manual entry. Free to try.",
+  alternates: { canonical: canonical("/") },
+  openGraph: { url: canonical("/") },
+};
 
 const QUESTIONS = [
   {
