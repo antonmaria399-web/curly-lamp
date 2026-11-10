@@ -101,6 +101,15 @@ Tier = rank by price of Kwop's plans (`lib/quotas.ts`). Counted on the server pe
 - [ ] Gemini key (owner) → `GEMINI_API_KEY` in .env.local + Vercel. Until then text PDFs work with the built-in parser; photos ask for the PDF.
 - [ ] Google sign-in (owner steps, then Supabase `external_google_*` + `NEXT_PUBLIC_GOOGLE_ENABLED=1`).
 
+## SEO (Nov 10, branch `claude/budgeto-seo-strategy-fsq660`, deployed with `npx vercel deploy --prod`)
+- Playbook, keyword map, 4-week plan: `SEO.md`. Page registry (title ≤ 60, description ≤ 155, OG lines, dates): `lib/seo/site.ts`. JSON-LD: `lib/seo/jsonld.tsx` (prices read live from Kwop only on pages that show them). Page frame + blocks: `components/seo/blocks.tsx`.
+- Pages: `/bank-statement-analyzer`, `/rocket-money-alternative`, `/vs/ynab`, `/vs/copilot`, `/for/college-students`, `/guides` + 3 guides. Examples come from the real engine on the sample PDF: `lib/seo/sample-report.json` (regenerate: `npx tsx scripts/sample-report.mts`).
+- Check: `node scripts/seo-check.mjs [url]` (titles, descriptions, H1, canonical, OG, JSON-LD, noindex on private screens, 404). Live: all pass; Lighthouse phone on `/`: perf 91–96, SEO 100.
+- Speed rules on the landing: hero is never hidden waiting for JS (`.hero-rise`), `Reveal`/`Stagger` are CSS-only (`.reveal`), decorative animations mount near the screen (`components/landing/lazy.tsx`), Supabase client is imported on sign-up click.
+- Live e2e: production allows 3 free scans/day per IP, so more than ~3 scan runs in a row from one machine fail with "You've used your 3 free scans" (expected).
+- Vercel's Git production branch is still `claude/budgeto-kwop-build-rrbe8d`: a push there would redeploy the pre-SEO code. Owner to merge this branch first (or switch the production branch).
+- Search Console: set `GOOGLE_SITE_VERIFICATION` on Vercel (HTML-tag value), redeploy, then submit `/sitemap.xml`.
+
 ## Local testing
 - `.env.local`: local Supabase keys, `FREE_TRIES_PER_DAY=1000`, `DEV_PAID=email:planId,…` (fakes a paid plan, ignored in production). Test users power@ / starter@budgeto-test.dev, password `Leaks-are-bad-2026`.
 - Behind the sandbox proxy, run Node with `NODE_USE_ENV_PROXY=1 NO_PROXY="localhost,127.0.0.1,$NO_PROXY"` so server fetches to Kwop work.
