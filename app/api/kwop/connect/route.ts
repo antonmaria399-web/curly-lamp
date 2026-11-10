@@ -15,7 +15,7 @@ export async function POST() {
   const site = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
   const h = await headers();
   if (!secret || secret.length < 32 || !site?.startsWith("https://")) {
-    console.error("[kwop connect] not configured", { secret: Boolean(secret), site: Boolean(site) });
+    console.error("[kwop connect] not configured", { secretLen: secret?.length ?? 0, siteHttps: Boolean(site?.startsWith("https://")), siteLen: site?.length ?? 0 });
     return fail("Not found", 404);
   }
   const got = Buffer.from((h.get("x-connect-secret") || h.get("authorization") || "").replace(/^Bearer\s+/i, "").trim());
