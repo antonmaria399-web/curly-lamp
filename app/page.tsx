@@ -74,9 +74,9 @@ export default async function Home() {
             <div id="scan" className="scroll-mt-28 rounded-[26px]">
               <HeroFunnel authed={Boolean(viewer.user)} paid={viewer.plan.paid} />
             </div>
-            <p className="num mt-5 text-center text-[12px] uppercase tracking-[0.14em] text-white/45">Free to try · No bank login · No card · Ready in seconds</p>
-            <p className="mt-2 flex items-center justify-center gap-1.5 text-center text-[13px] text-white/45">
-              <Lock className="h-3.5 w-3.5" /> Your file is read once and never stored. Delete your report anytime.
+            <p className="num mt-5 text-balance text-center text-[12px] uppercase tracking-[0.12em] text-white/45">Free to try · No bank login · No card · Ready in seconds</p>
+            <p className="mx-auto mt-2 max-w-[340px] text-balance text-center text-[13px] text-white/45 sm:max-w-none">
+              <Lock className="mr-1 inline h-3.5 w-3.5 -translate-y-px" />Your file is read once and never stored. Delete your report anytime.
             </p>
           </Reveal>
         </div>
@@ -233,7 +233,7 @@ export default async function Home() {
             <h2 className="title-xl mt-4 text-[38px] sm:text-[52px]">A weekend of setup, or 5 seconds.</h2>
           </Reveal>
           <Reveal delay={0.08} className="mt-12 overflow-hidden rounded-[22px] border border-black/[0.08] bg-white">
-            <div className="grid grid-cols-[1.2fr_1fr_1fr] border-b border-black/[0.06] bg-zinc-50 px-4 py-3 text-[13px] font-semibold sm:px-6">
+            <div className="grid grid-cols-[1.2fr_1fr_1fr] gap-2 border-b border-black/[0.06] bg-zinc-50 px-4 py-3 text-[13px] font-semibold sm:px-6">
               <span />
               <span className="text-zinc-500">Budgeting apps</span>
               <span>Budgeto</span>

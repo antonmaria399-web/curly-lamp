@@ -125,10 +125,10 @@ export function HowPhone({ step }: { step: 1 | 2 | 3 }) {
                 ["Hulu", 17.99, false],
               ].map(([m, v, c]) => (
                 <div key={m as string} className="flex items-center gap-2 rounded-lg border border-white/10 px-2.5 py-2 text-[12px]">
-                  <span className={cn("grid h-4 w-4 place-items-center rounded-full", c ? "bg-[#4ade80] text-ink" : "bg-lime/80")}>{c ? <Check className="h-2.5 w-2.5" strokeWidth={3} /> : null}</span>
-                  <span className={cn(c && "line-through opacity-60")}>{m as string}</span>
+                  <span className={cn("grid h-4 w-4 shrink-0 place-items-center rounded-full", c ? "bg-[#4ade80] text-ink" : "bg-lime/80")}>{c ? <Check className="h-2.5 w-2.5" strokeWidth={3} /> : null}</span>
+                  <span className={cn("truncate", c && "line-through opacity-60")}>{m as string}</span>
                   <span className="ledger-leader" />
-                  <span className="num text-[#fb7185]">−{usd(v as number)}</span>
+                  <span className="num shrink-0 whitespace-nowrap text-[#fb7185]">−{usd(v as number)}</span>
                 </div>
               ))}
             </div>

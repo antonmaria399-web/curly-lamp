@@ -44,6 +44,7 @@ export async function DELETE(_: Request, ctx: RouteContext<"/api/reports/[id]">)
   const { id } = await ctx.params;
   const r = await load(id);
   if (!r) return fail("Report not found", 404);
-  await supabaseAdmin().from("reports").delete().eq("id", id);
+  const del = supabaseAdmin().from("reports").delete().eq("id", id);
+  await (r.viewer.user ? del.eq("user_id", r.viewer.user.id) : del.is("user_id", null).eq("device_id", r.row.device_id));
   return json({ ok: true });
 }

@@ -135,11 +135,11 @@ export function LockedReport({
   const widths = [132, 96, 150, 110, 88, 124];
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-        <span className="truncate font-medium text-fg">{fileName}</span>
-        {result.bank && <span>· {result.bank}</span>}
-        {result.period && <span className="num">· {result.period}</span>}
-        <span className="num">· {result.transactions_count} transactions read</span>
+      <div className="text-sm text-muted">
+        <div className="truncate font-medium text-fg">{fileName}</div>
+        <p className="mt-0.5">
+          {[result.bank, result.period, `${result.transactions_count} transactions read`].filter(Boolean).join(" · ")}
+        </p>
       </div>
 
       <button onClick={onUnlock} className="relative block w-full text-left" aria-label={unlockLabel}>
@@ -209,7 +209,7 @@ export function FullReport({
       </div>
 
       <section>
-        <div className="mb-3 flex items-baseline justify-between">
+        <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
           <h3 className="label-mono text-muted">[ Subscriptions & repeat charges · {result.leaks.length} ]</h3>
           <span className="text-xs text-muted">Tap one for how to cancel</span>
         </div>

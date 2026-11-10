@@ -90,16 +90,21 @@ Tier = rank by price of Kwop's plans (`lib/quotas.ts`). Counted on the server pe
 
 ## Status / to do
 - [x] Steps 0–4, 6–8 code written; `npm run build` and `npm run lint` clean (warnings only).
-- [ ] Step 5 Supabase project + migrations (blocked: proxy-injected Supabase token rejected in the first cloud session).
+- [~] Step 5: migrations verified on a **local** Supabase (`npx supabase start`, Docker: start `dockerd` first in the cloud box). Hosted project still blocked: the proxy's Supabase token is rejected ("JWT could not be decoded"), Vercel's too ("invalidToken") — owner must reconnect both connectors.
+- [x] e2e test (`npm run e2e`, phone viewport): sample scan → locked (server-side check that totals are absent) → sign-up → paywall → checkout → unlock film → unblurred → account; plus "payments off" (409). Kwop is stubbed by `tests/kwop-mock.mjs` (test only); Whop's script is stubbed in the test.
+- [x] Security pass: profile column grants (users can't rewrite `kwop_k`/attribution), cross-site requests without Origin refused, delete queries scoped to owner, `frame-ancestors 'self'`, IP from `x-real-ip`.
 - [ ] Gemini key (owner to provide) → `GEMINI_API_KEY`.
 - [ ] Google sign-in (owner steps, then `NEXT_PUBLIC_GOOGLE_ENABLED=1`).
-- [ ] e2e test, premium pass, Vercel deploy, Kwop connect, security pass.
+- [ ] Vercel deploy, Kwop connect (POST /connect), hosted Supabase migrations — all need working connectors / the real `KWOP_API`.
 
 ## Kwop API (server only, `lib/kwop.ts`)
 `KWOP_API` env var. GET plans · POST /checkout · POST /confirm · GET /plan?email · POST /cancel · POST /event · POST /connect. See `docs/BUILD-SPEC.md` §8. Never hardcode a price or plan id. Kwop tracked link `?k=` → cookie `kwop_k` (30 d) → `profiles.kwop_k` → sent as `k` on checkout.
 
 ## Verification loop
 After every feature: run, screenshots 390×844 and 1440×900 via `scripts/shot.mjs`, look at them, zero console errors, fix ×3, commit. E2E: `tests/e2e.spec.ts` (landing → sample scan → locked → sign-up → paywall → checkout sheet opens → close → account).
+
+## Local dev / test
+`.env.local` (gitignored) → local Supabase (`http://127.0.0.1:54321`, demo keys from `npx supabase status -o env`) + `KWOP_API=http://127.0.0.1:4010` (`node tests/kwop-mock.mjs`). Then `npm run build && npm run e2e` (global setup truncates `tries` on the local DB only).
 
 ## Environment notes (cloud build)
 - Built in a Claude Code cloud session; browser logins replaced by tokens (Supabase access token, Vercel token).

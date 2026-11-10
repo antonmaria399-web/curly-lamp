@@ -577,7 +577,7 @@ function CheckoutSheet({ sel, onClose, onPaid }: { sel: { plan: UIPlan; period: 
           </div>
         )}
         <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-muted">
-          <Lock className="h-3 w-3" /> Secure payment by Whop · Cancel in 1 click
+          <Lock className="h-3 w-3" /> Secure payment by Whop · Cancel anytime in Account
         </p>
       </div>
     </Sheet>

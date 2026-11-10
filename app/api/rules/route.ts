@@ -31,6 +31,6 @@ export async function DELETE(req: Request) {
   const id = new URL(req.url).searchParams.get("id") || "";
   if (!/^[0-9a-f-]{36}$/i.test(id)) return fail("Bad request");
   const sb = await supabaseServer();
-  await sb.from("rules").delete().eq("id", id);
+  await sb.from("rules").delete().eq("id", id).eq("user_id", viewer.user.id);
   return json({ ok: true });
 }
