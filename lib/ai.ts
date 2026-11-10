@@ -104,9 +104,9 @@ Amounts: negative for money leaving the account (purchases, subscriptions, fees,
 Merchant: a short clean name a person recognizes. Mark is_subscription true for memberships and subscriptions that renew by themselves (streaming, apps, gyms, software, cloud storage, news, delivery passes, insurance plans billed monthly).
 If the document is not a statement or list of transactions, set is_statement false and return no transactions.`;
 
-async function withGemini(file: Uint8Array, mime: string): Promise<{ txns: Txn[]; bank: string | null; period: string | null; hints: Record<string, boolean> }> {
+async function withGemini(file: Uint8Array, mime: string, budgetMs = 48_000, maxRounds = 4): Promise<{ txns: Txn[]; bank: string | null; period: string | null; hints: Record<string, boolean> }> {
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-  const deadline = Date.now() + 48_000; // the route has 60 s; keep room for the text-parser fallback
+  const deadline = Date.now() + budgetMs; // the route has 60 s; keep room for the text-parser fallback
   const call = (model: string, ms: number) =>
     ai.models.generateContent({
       model,
@@ -128,14 +128,14 @@ async function withGemini(file: Uint8Array, mime: string): Promise<{ txns: Txn[]
   let res: Awaited<ReturnType<typeof call>> | null = null;
   let last: unknown = null;
   let pool = gone.has(WANTED) ? await flashModels(ai) : [WANTED];
-  for (let round = 0; round < 4 && !res; round++) {
+  for (let round = 0; round < maxRounds && !res; round++) {
     if (round > 0) {
       pool = await flashModels(ai);
       if (round > 1) await new Promise((r) => setTimeout(r, 1500 * round));
     }
     for (const model of pool.filter((m) => !gone.has(m))) {
       const left = deadline - Date.now();
-      if (left < 8_000 || res) break;
+      if (left < Math.min(8_000, budgetMs / 2) || res) break;
       try {
         res = await call(model, left);
       } catch (e) {
@@ -194,20 +194,25 @@ export async function scanStatement(
   rules: { kind: string; value: string }[] = [],
 ): Promise<ReportResult> {
   const isPdf = mime === "application/pdf";
+  // A text PDF is read instantly by the built-in parser. Gemini reads it better (cleaner names), but when
+  // Google is busy we don't make the visitor wait: one quick round, then the parser's result.
+  let text: Awaited<ReturnType<typeof withText>> | null = null;
+  if (isPdf) text = await withText(file).catch(() => null);
+  const quick = Boolean(text && text.txns.length > 0);
   if (aiEnabled()) {
     try {
-      const g = await withGemini(file, mime);
+      const g = await withGemini(file, mime, quick ? 9_000 : 48_000, quick ? 2 : 4);
       if (g.txns.length > 0) return analyze(g.txns, { bank: g.bank, period: g.period, engine: "gemini", hints: g.hints }, rules);
       throw new ScanError("no_transactions", "We couldn't find transactions in this file.");
     } catch (e) {
       if (e instanceof ScanError && e.code === "no_transactions" && !isPdf) throw e;
       console.error("[ai] gemini failed, falling back to text parser", (e as Error).message);
-      if (!isPdf) throw new ScanError("ai_failed", "Our AI is busy. Try again in a moment.");
+      if (!isPdf) throw new ScanError("ai_failed", "Our AI is busy right now. Try again in a minute, or upload the PDF from your bank's website.");
     }
   } else if (!isPdf) {
     throw new ScanError("image_needs_ai", "Photo scans are almost ready. For now, upload the PDF from your bank's website.");
   }
-  const t = await withText(file);
+  const t = text ?? (await withText(file));
   if (t.txns.length === 0) throw new ScanError("no_transactions", "We couldn't find transactions in this file.");
   return analyze(t.txns, { bank: t.bank, period: t.period, engine: "rules" }, rules);
 }
