@@ -21,7 +21,7 @@ http.createServer(async (req, res) => {
   if (req.method === "GET" && p === "") return send(res, 200, { name: "Budgeto", checkout: "embedded", plans });
   if (req.method === "GET" && p === "/plan") {
     const plan = paid.get((u.searchParams.get("email") || "").toLowerCase());
-    return send(res, 200, plan ? { paid: true, plan: { id: plan.id, name: plan.name }, status: "active", until: new Date(Date.now() + 30 * 864e5).toISOString() } : { paid: false, plan: null, status: null, until: null });
+    return send(res, 200, plan ? { paid: true, plan: { id: plan.id, name: plan.name }, status: "active", until: plan.until } : { paid: false, plan: null, status: null, until: null });
   }
   const b = await body(req);
   if (p === "/checkout") {
@@ -33,7 +33,8 @@ http.createServer(async (req, res) => {
   if (p === "/confirm") {
     const r = refs.get(b.ref);
     if (!r) return send(res, 200, { ok: false, paid: false });
-    paid.set(r.email, r.plan);
+    // Renewal date fixed at payment time, like a real subscription.
+    paid.set(r.email, { ...r.plan, until: new Date(Date.now() + 30 * 864e5).toISOString() });
     return send(res, 200, { ok: true, paid: true });
   }
   if (p === "/cancel") { paid.delete(String(b.email).toLowerCase()); return send(res, 200, { message: "Canceled. You keep access until the end of the period." }); }

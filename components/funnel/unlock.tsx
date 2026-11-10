@@ -28,6 +28,8 @@ type Ctx = {
   openUpgrade: (toTier?: 2 | 3) => void;
   authed: boolean;
   paid: boolean;
+  /** 0 free, 1–3 = rank of the paid plan. */
+  currentTier: number;
   plans: UIPlan[];
   minPerDay: string | null;
 };
@@ -144,7 +146,10 @@ export function UnlockProvider({
   }, [finish]);
 
   const minPerDay = plans[0]?.per_day ?? null;
-  const value = useMemo(() => ({ unlock, openPaywall, openUpgrade, authed, paid, plans, minPerDay }), [unlock, openPaywall, openUpgrade, authed, paid, plans, minPerDay]);
+  const value = useMemo(
+    () => ({ unlock, openPaywall, openUpgrade, authed, paid, currentTier, plans, minPerDay }),
+    [unlock, openPaywall, openUpgrade, authed, paid, currentTier, plans, minPerDay],
+  );
 
   return (
     <UnlockCtx.Provider value={value}>

@@ -93,6 +93,7 @@ Tier = rank by price of Kwop's plans (`lib/quotas.ts`). Counted on the server pe
 - [~] Step 5: migrations verified on a **local** Supabase (`npx supabase start`, Docker: start `dockerd` first in the cloud box). Hosted project still blocked: the proxy's Supabase token is rejected ("JWT could not be decoded"), Vercel's too ("invalidToken") — owner must reconnect both connectors.
 - [x] e2e test (`npm run e2e`, phone viewport): sample scan → locked (server-side check that totals are absent) → sign-up → paywall → checkout → unlock film → unblurred → account; plus "payments off" (409). Kwop is stubbed by `tests/kwop-mock.mjs` (test only); Whop's script is stubbed in the test.
 - [x] Security pass: profile column grants (users can't rewrite `kwop_k`/attribution), cross-site requests without Origin refused, delete queries scoped to owner, `frame-ancestors 'self'`, IP from `x-real-ip`.
+- [x] App pages checked at 390 and 1440 (dashboard, upload, leaks, report, settings, account, pricing). /pricing offers paid users the next plan (upgrade sheet) and only says "all set" on the top plan.
 - [ ] Gemini key (owner to provide) → `GEMINI_API_KEY`.
 - [ ] Google sign-in (owner steps, then `NEXT_PUBLIC_GOOGLE_ENABLED=1`).
 - [ ] Vercel deploy, Kwop connect (POST /connect), hosted Supabase migrations — all need working connectors / the real `KWOP_API`.

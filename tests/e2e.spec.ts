@@ -69,6 +69,12 @@ test("landing → sample scan → locked → sign-up → paywall → checkout �
   await expect(page.getByText(/\[ Current plan \]\s*Pro\s*Renews on/)).toBeVisible();
   await expect(page.getByRole("button", { name: "Cancel my subscription" })).toBeVisible();
 
+  // A Pro user on /pricing is offered the next plan only (Power), not told "all set".
+  await page.goto("/pricing");
+  await expect(page.getByRole("heading", { name: "You're on Pro" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Upgrade" }).getByText(/Power/).first()).toBeVisible();
+  await shot(page, "6-upgrade");
+
   expect(errors.filter((e) => !/favicon|kwop\.io\/flow/.test(e))).toEqual([]);
 });
 
