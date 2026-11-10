@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Legal } from "@/components/legal";
 
-export const metadata: Metadata = { title: "Privacy", description: "What Budgeto keeps, why, and how to delete it." };
+export const metadata: Metadata = { title: "Privacy", description: "What Budgeto keeps, why, and how to delete it.", alternates: { canonical: "/privacy" } };
 
 export default function Privacy() {
   return (

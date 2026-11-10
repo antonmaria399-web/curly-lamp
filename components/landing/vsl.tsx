@@ -3,7 +3,7 @@ import { AnimatePresence, motion, useInView, useReducedMotion } from "framer-mot
 import { Check, FileText, Pause, Play, RotateCcw, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { cn, usd } from "@/lib/cn";
-import { CountUp } from "@/components/ui/reveal";
+import { CountUp } from "@/components/ui/count-up";
 
 /**
  * Motion-design VSL (no video file): 8 scenes, ~58 s, big captions, muted autoplay when in view, replay button.

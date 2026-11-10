@@ -4,7 +4,7 @@ import { AlertTriangle, ArrowDownRight, Check, Lock, RefreshCcw, Repeat, Scissor
 import { useState } from "react";
 import { cn, usd } from "@/lib/cn";
 import type { Leak, LockedResult, ReportResult } from "@/lib/types";
-import { CountUp } from "@/components/ui/reveal";
+import { CountUp } from "@/components/ui/count-up";
 
 const cadenceLabel = (c: Leak["cadence"]) => ({ weekly: "weekly", monthly: "monthly", quarterly: "every 3 mo", yearly: "yearly" })[c];
 

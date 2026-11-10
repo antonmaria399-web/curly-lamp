@@ -4,13 +4,16 @@ import Script from "next/script";
 import { Check, EyeOff, FileText, Lock, ShieldCheck, Trash2, X } from "lucide-react";
 import { TopBar, Footer } from "@/components/landing/chrome";
 import { HeroFunnel } from "@/components/landing/hero-funnel";
-import { VSL } from "@/components/landing/vsl";
-import { CTA, FAQ, FeatureLoop, HeroNotifications, HowPhone, StickyCTA } from "@/components/landing/bits";
-import { Phone } from "@/components/landing/phone";
+import { CTA, StickyCTA } from "@/components/landing/bits";
+import { LazyFeatureLoop, LazyHowPhone, LazyLockPhone, LazyVSL } from "@/components/landing/lazy";
+import { FaqList } from "@/components/seo/blocks";
+import { pageMetadata } from "@/lib/seo/site";
+import { JsonLd, faqPage, organization, softwareApp, website } from "@/lib/seo/jsonld";
 import { Reveal, Stagger, StaggerItem, CountUp } from "@/components/ui/reveal";
 import { getViewer } from "@/lib/viewer";
 
 export const dynamic = "force-dynamic";
+export const metadata = pageMetadata("/");
 
 const QUESTIONS = [
   {
@@ -23,7 +26,7 @@ const QUESTIONS = [
   },
   {
     q: "Which banks does it work with?",
-    a: "Any US bank or card that gives you a PDF statement: Chase, Bank of America, Wells Fargo, Capital One, Citi, Amex, Discover, credit unions and more. A clear photo of a paper statement works too.",
+    a: "Any US bank or card that gives you a PDF statement: Chase, Bank of America, Wells Fargo, Capital One, Citi, Amex, Discover, credit unions and more. Use the PDF you download from your bank's website or app.",
   },
   {
     q: "Can Budgeto see which apps I actually use?",
@@ -42,9 +45,11 @@ const QUESTIONS = [
 export default async function Home() {
   const viewer = await getViewer();
   const hasVideo = existsSync(path.join(process.cwd(), "public", "vsl.mp4"));
+  const ld = [organization(), website(), await softwareApp({ withPrices: false }), faqPage(QUESTIONS)];
 
   return (
     <main className="bg-night text-white">
+      <JsonLd data={ld} />
       <TopBar />
 
       {/* HERO: the product itself */}
@@ -53,32 +58,28 @@ export default async function Home() {
         <div className="top-glow pointer-events-none absolute inset-0" />
         <div className="relative mx-auto max-w-[1120px] px-4 sm:px-8">
           <div className="mx-auto max-w-[820px] text-center">
-            <Reveal>
-              <span className="label-mono text-white/60">[ AI statement scan ]</span>
-            </Reveal>
-            <Reveal delay={0.06}>
-              <h1 className="title-xl mt-5 text-[42px] sm:text-[72px]">
-                Find the subscriptions you forgot you pay.
-                <br />
-                <span className="grad-text">In 5 seconds.</span>
-              </h1>
-            </Reveal>
-            <Reveal delay={0.12}>
+            <span className="label-mono hero-rise block text-white/60">[ AI statement scan ]</span>
+            <h1 className="title-xl hero-rise mt-5 text-[42px] sm:text-[72px]">
+              Find the subscriptions you forgot you pay.
+              <br />
+              <span className="grad-text">In 5 seconds.</span>
+            </h1>
+            <div className="hero-rise">
               <p className="mx-auto mt-5 max-w-[560px] text-[17px] leading-relaxed text-white/65 sm:text-[19px]">
                 Drop your bank statement PDF. Budgeto&apos;s AI flags <b className="font-semibold text-white">recurring charges</b> and{" "}
                 <b className="font-semibold text-white">hidden fees</b>. No bank login.
               </p>
-            </Reveal>
+            </div>
           </div>
-          <Reveal delay={0.18} className="mx-auto mt-10 max-w-[760px]">
+          <div className="hero-rise mx-auto mt-10 max-w-[760px]">
             <div id="scan" className="scroll-mt-28 rounded-[26px]">
               <HeroFunnel authed={Boolean(viewer.user)} paid={viewer.plan.paid} />
             </div>
-            <p className="num mt-5 text-center text-[12px] uppercase tracking-[0.14em] text-white/45">Free to try · No bank login · No card · Ready in seconds</p>
-            <p className="mt-2 flex items-center justify-center gap-1.5 text-center text-[13px] text-white/45">
+            <p className="num mt-5 text-center text-[12px] uppercase tracking-[0.14em] text-white/55">Free to try · No bank login · No card · Ready in seconds</p>
+            <p className="mt-2 flex items-center justify-center gap-1.5 text-center text-[13px] text-white/55">
               <Lock className="h-3.5 w-3.5" /> Your file is read once and never stored. Delete your report anytime.
             </p>
-          </Reveal>
+          </div>
         </div>
       </section>
 
@@ -86,7 +87,7 @@ export default async function Home() {
       <section className="relative pb-24 sm:pb-32" aria-label="Watch how it works">
         <div className="mx-auto max-w-[1000px] px-4 sm:px-8">
           <Reveal>
-            <VSL video={hasVideo} />
+            <LazyVSL video={hasVideo} />
           </Reveal>
         </div>
       </section>
@@ -152,7 +153,7 @@ export default async function Home() {
               [3, "Save", "Cancel what you don't use with the steps we give you. Watch your savings stack up."],
             ].map(([n, t, d]) => (
               <StaggerItem key={n as number} className="text-center">
-                <HowPhone step={n as 1 | 2 | 3} />
+                <LazyHowPhone step={n as 1 | 2 | 3} />
                 <div className="num mt-8 text-sm text-lime">0{n as number}</div>
                 <h3 className="mt-1 text-2xl font-semibold tracking-tight">{t as string}</h3>
                 <p className="mx-auto mt-2 max-w-[300px] text-white/60">{d as string}</p>
@@ -187,7 +188,7 @@ export default async function Home() {
             ).map(([k, t, d]) => (
               <StaggerItem key={k} className="overflow-hidden rounded-[22px] border border-black/[0.08] bg-white">
                 <div className="h-[230px] bg-zinc-50 p-5 [--surface:#fff] [--line:rgba(10,11,10,.08)] [--muted:#71717a]">
-                  <FeatureLoop kind={k} />
+                  <LazyFeatureLoop kind={k} />
                 </div>
                 <div className="p-6">
                   <h3 className="text-xl font-semibold tracking-tight">{t}</h3>
@@ -218,9 +219,7 @@ export default async function Home() {
             </p>
           </Reveal>
           <Reveal delay={0.1}>
-            <Phone lock>
-              <HeroNotifications />
-            </Phone>
+            <LazyLockPhone />
           </Reveal>
         </div>
       </section>
@@ -312,7 +311,7 @@ export default async function Home() {
             <h2 className="title-xl mt-4 text-[38px] sm:text-[52px]">Before you upload.</h2>
           </Reveal>
           <Reveal delay={0.06} className="mt-12">
-            <FAQ items={QUESTIONS} />
+            <FaqList items={QUESTIONS} />
           </Reveal>
         </div>
       </section>
@@ -336,7 +335,7 @@ export default async function Home() {
 
       <Footer />
       <StickyCTA />
-      <Script src="https://kwop.io/flow.js" data-site="s_5cdc0c337f" strategy="afterInteractive" />
+      <Script src="https://kwop.io/flow.js" data-site="s_5cdc0c337f" strategy="lazyOnload" />
     </main>
   );
 }

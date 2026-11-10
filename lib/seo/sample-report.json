@@ -1,0 +1,488 @@
+{
+ "result": {
+  "bank": "Sample Community Bank",
+  "period": "Aug 1, 2026 - Sep 30, 2026",
+  "currency": "USD",
+  "transactions_count": 54,
+  "total_out": 3985.36,
+  "total_in": 4741.6,
+  "categories": [
+   {
+    "name": "Housing",
+    "amount": 2650
+   },
+   {
+    "name": "Bills & utilities",
+    "amount": 285.6
+   },
+   {
+    "name": "Groceries & shopping",
+    "amount": 265.9
+   },
+   {
+    "name": "Other",
+    "amount": 208
+   },
+   {
+    "name": "Streaming & entertainment",
+    "amount": 158.8
+   },
+   {
+    "name": "Transport",
+    "amount": 102.2
+   },
+   {
+    "name": "Apps & software",
+    "amount": 65.96
+   },
+   {
+    "name": "Food & delivery",
+    "amount": 60.58
+   },
+   {
+    "name": "Health & fitness",
+    "amount": 59.98
+   },
+   {
+    "name": "Transfers",
+    "amount": 50
+   },
+   {
+    "name": "Shopping",
+    "amount": 47.34
+   },
+   {
+    "name": "Bank fees",
+    "amount": 31
+   }
+  ],
+  "leaks": [
+   {
+    "key": "SMARTSAFE SELF STORAGE",
+    "merchant": "Smartsafe Self Storage",
+    "amount": 44,
+    "cadence": "monthly",
+    "monthly": 44,
+    "category": "Other",
+    "kind": "recurring",
+    "reason": "Same amount charged 2 times (monthly)",
+    "occurrences": 2,
+    "last_date": "2026-09-11",
+    "cancel_hint": "Find the charge in your email (search the merchant name) and cancel from the account page"
+   },
+   {
+    "key": "CRUNCH FITNESS MEMBERSHIP",
+    "merchant": "Gym membership",
+    "amount": 29.99,
+    "cadence": "monthly",
+    "monthly": 29.99,
+    "category": "Health & fitness",
+    "kind": "subscription",
+    "reason": "Subscription — charged 2 times, monthly",
+    "occurrences": 2,
+    "last_date": "2026-09-05",
+    "cancel_hint": "Call or visit your club; ask for written confirmation"
+   },
+   {
+    "key": "ADOBE CLD SAN",
+    "merchant": "Adobe",
+    "amount": 22.99,
+    "cadence": "monthly",
+    "monthly": 22.99,
+    "category": "Apps & software",
+    "kind": "subscription",
+    "reason": "Subscription — charged 2 times, monthly",
+    "occurrences": 2,
+    "last_date": "2026-09-08",
+    "cancel_hint": "account.adobe.com → Plans → Cancel (check early-cancel fee)"
+   },
+   {
+    "key": "HULU",
+    "merchant": "Hulu",
+    "amount": 17.99,
+    "cadence": "monthly",
+    "monthly": 17.99,
+    "category": "Streaming & entertainment",
+    "kind": "subscription",
+    "reason": "Subscription — charged 2 times, monthly",
+    "occurrences": 2,
+    "last_date": "2026-09-06",
+    "cancel_hint": "hulu.com/account → Cancel"
+   },
+   {
+    "key": "NETFLIX.COM",
+    "merchant": "Netflix",
+    "amount": 15.49,
+    "cadence": "monthly",
+    "monthly": 15.49,
+    "category": "Streaming & entertainment",
+    "kind": "subscription",
+    "reason": "Subscription — charged 2 times, monthly",
+    "occurrences": 2,
+    "last_date": "2026-09-02",
+    "cancel_hint": "netflix.com → Account → Cancel membership"
+   },
+   {
+    "key": "AUDIBLE ADBL.CO/PYMT",
+    "merchant": "Audible",
+    "amount": 14.95,
+    "cadence": "monthly",
+    "monthly": 14.95,
+    "category": "Streaming & entertainment",
+    "kind": "subscription",
+    "reason": "Subscription — charged 2 times, monthly",
+    "occurrences": 2,
+    "last_date": "2026-09-12",
+    "cancel_hint": "audible.com → Account details → Cancel membership"
+   },
+   {
+    "key": "SPOTIFY USA NEW",
+    "merchant": "Spotify",
+    "amount": 11.99,
+    "cadence": "monthly",
+    "monthly": 11.99,
+    "category": "Streaming & entertainment",
+    "kind": "subscription",
+    "reason": "Subscription — charged 2 times, monthly",
+    "occurrences": 2,
+    "last_date": "2026-09-03",
+    "cancel_hint": "spotify.com/account → Manage plan → Cancel"
+   },
+   {
+    "key": "SIRIUSXM RADIO",
+    "merchant": "SiriusXM",
+    "amount": 10.99,
+    "cadence": "monthly",
+    "monthly": 10.99,
+    "category": "Streaming & entertainment",
+    "kind": "subscription",
+    "reason": "Subscription — charged 2 times, monthly",
+    "occurrences": 2,
+    "last_date": "2026-09-18",
+    "cancel_hint": "Call 1-866-635-2349 or chat at siriusxm.com"
+   },
+   {
+    "key": "APPLE.COM/BILL",
+    "merchant": "Apple subscriptions",
+    "amount": 9.99,
+    "cadence": "monthly",
+    "monthly": 9.99,
+    "category": "Apps & software",
+    "kind": "subscription",
+    "reason": "Subscription — charged 2 times, monthly",
+    "occurrences": 2,
+    "last_date": "2026-09-10",
+    "cancel_hint": "iPhone Settings → your name → Subscriptions"
+   },
+   {
+    "key": "DOORDASH DASHPASS SAN",
+    "merchant": "DashPass",
+    "amount": 9.99,
+    "cadence": "monthly",
+    "monthly": 9.99,
+    "category": "Food & delivery",
+    "kind": "subscription",
+    "reason": "Subscription — charged 2 times, monthly",
+    "occurrences": 2,
+    "last_date": "2026-09-16",
+    "cancel_hint": "DoorDash app → Account → DashPass → End"
+   },
+   {
+    "key": "PEACOCKTV SUBSCRIPTION",
+    "merchant": "Peacock",
+    "amount": 7.99,
+    "cadence": "monthly",
+    "monthly": 7.99,
+    "category": "Streaming & entertainment",
+    "kind": "subscription",
+    "reason": "Subscription — charged 2 times, monthly",
+    "occurrences": 2,
+    "last_date": "2026-09-20",
+    "cancel_hint": "peacocktv.com → Account → Plans → Cancel"
+   }
+  ],
+  "fees": [
+   {
+    "key": "MONTHLY SERVICE FEE",
+    "merchant": "Monthly account fee",
+    "amount": 12,
+    "cadence": "monthly",
+    "monthly": 12,
+    "category": "Bank fees",
+    "kind": "fee",
+    "reason": "Charged 2 times on this statement",
+    "occurrences": 2,
+    "last_date": "2026-09-30",
+    "cancel_hint": "Call your bank and ask them to refund it and waive it going forward"
+   },
+   {
+    "key": "NON NETWORK ATM",
+    "merchant": "ATM fee",
+    "amount": 3.5,
+    "cadence": "monthly",
+    "monthly": 3.5,
+    "category": "Bank fees",
+    "kind": "fee",
+    "reason": "Charged 2 times on this statement",
+    "occurrences": 2,
+    "last_date": "2026-09-23",
+    "cancel_hint": "Call your bank and ask them to refund it and waive it going forward"
+   }
+  ],
+  "monthly_leaks": 211.86,
+  "yearly_leaks": 2542.32,
+  "engine": "rules"
+ },
+ "raw": [
+  {
+   "date": "2026-08-01",
+   "description": "RENT PAYMENT OAKWOOD APARTMENTS",
+   "amount": -1325
+  },
+  {
+   "date": "2026-08-02",
+   "description": "NETFLIX.COM 866-579-7172 CA",
+   "amount": -15.49
+  },
+  {
+   "date": "2026-08-03",
+   "description": "SPOTIFY USA NEW YORK NY",
+   "amount": -11.99
+  },
+  {
+   "date": "2026-08-04",
+   "description": "KROGER #412 COLUMBUS OH",
+   "amount": -95.22
+  },
+  {
+   "date": "2026-08-05",
+   "description": "CRUNCH FITNESS MEMBERSHIP",
+   "amount": -29.99
+  },
+  {
+   "date": "2026-08-06",
+   "description": "HULU 877-8244858 CA",
+   "amount": -17.99
+  },
+  {
+   "date": "2026-08-07",
+   "description": "SHELL OIL 57444 COLUMBUS OH",
+   "amount": -33.2
+  },
+  {
+   "date": "2026-08-08",
+   "description": "ADOBE *CREATIVE CLD SAN JOSE CA",
+   "amount": -22.99
+  },
+  {
+   "date": "2026-08-09",
+   "description": "CHIPOTLE 2231 COLUMBUS OH",
+   "amount": -13.85
+  },
+  {
+   "date": "2026-08-10",
+   "description": "APPLE.COM/BILL 866-712-7753 CA",
+   "amount": -9.99
+  },
+  {
+   "date": "2026-08-11",
+   "description": "SMARTSAFE SELF STORAGE UNIT 114",
+   "amount": -44
+  },
+  {
+   "date": "2026-08-12",
+   "description": "AUDIBLE ADBL.CO/PYMT NJ",
+   "amount": -14.95
+  },
+  {
+   "date": "2026-08-14",
+   "description": "VERIZON WIRELESS PAYMENT",
+   "amount": -72
+  },
+  {
+   "date": "2026-08-16",
+   "description": "DOORDASH DASHPASS SAN FRANCISCO",
+   "amount": -9.99
+  },
+  {
+   "date": "2026-08-17",
+   "description": "TARGET 00012 COLUMBUS OH",
+   "amount": -38.18
+  },
+  {
+   "date": "2026-08-18",
+   "description": "SIRIUSXM RADIO 888-635-5144",
+   "amount": -10.99
+  },
+  {
+   "date": "2026-08-19",
+   "description": "STARBUCKS STORE 10233",
+   "amount": -6.45
+  },
+  {
+   "date": "2026-08-20",
+   "description": "PEACOCKTV SUBSCRIPTION NY",
+   "amount": -7.99
+  },
+  {
+   "date": "2026-08-22",
+   "description": "AEP OHIO ELECTRIC PAYMENT",
+   "amount": -72.3
+  },
+  {
+   "date": "2026-08-23",
+   "description": "NON-NETWORK ATM FEE",
+   "amount": -3.5
+  },
+  {
+   "date": "2026-08-23",
+   "description": "ATM WITHDRAWAL 1440 N HIGH ST",
+   "amount": -60
+  },
+  {
+   "date": "2026-08-25",
+   "description": "VENMO PAYMENT 1023849",
+   "amount": -25
+  },
+  {
+   "date": "2026-08-27",
+   "description": "UBER TRIP HELP.UBER.COM",
+   "amount": -18.4
+  },
+  {
+   "date": "2026-08-28",
+   "description": "AMAZON MKTPLACE PMTS AMZN.COM",
+   "amount": -24.17
+  },
+  {
+   "date": "2026-08-30",
+   "description": "MONTHLY SERVICE FEE",
+   "amount": -12
+  },
+  {
+   "date": "2026-09-01",
+   "description": "RENT PAYMENT OAKWOOD APARTMENTS",
+   "amount": -1325
+  },
+  {
+   "date": "2026-09-02",
+   "description": "NETFLIX.COM 866-579-7172 CA",
+   "amount": -15.49
+  },
+  {
+   "date": "2026-09-03",
+   "description": "SPOTIFY USA NEW YORK NY",
+   "amount": -11.99
+  },
+  {
+   "date": "2026-09-04",
+   "description": "KROGER #412 COLUMBUS OH",
+   "amount": -96.32
+  },
+  {
+   "date": "2026-09-05",
+   "description": "CRUNCH FITNESS MEMBERSHIP",
+   "amount": -29.99
+  },
+  {
+   "date": "2026-09-06",
+   "description": "HULU 877-8244858 CA",
+   "amount": -17.99
+  },
+  {
+   "date": "2026-09-07",
+   "description": "SHELL OIL 57444 COLUMBUS OH",
+   "amount": -32.2
+  },
+  {
+   "date": "2026-09-08",
+   "description": "ADOBE *CREATIVE CLD SAN JOSE CA",
+   "amount": -22.99
+  },
+  {
+   "date": "2026-09-09",
+   "description": "CHIPOTLE 2231 COLUMBUS OH",
+   "amount": -13.85
+  },
+  {
+   "date": "2026-09-10",
+   "description": "APPLE.COM/BILL 866-712-7753 CA",
+   "amount": -9.99
+  },
+  {
+   "date": "2026-09-11",
+   "description": "SMARTSAFE SELF STORAGE UNIT 114",
+   "amount": -44
+  },
+  {
+   "date": "2026-09-12",
+   "description": "AUDIBLE ADBL.CO/PYMT NJ",
+   "amount": -14.95
+  },
+  {
+   "date": "2026-09-14",
+   "description": "VERIZON WIRELESS PAYMENT",
+   "amount": -72
+  },
+  {
+   "date": "2026-09-16",
+   "description": "DOORDASH DASHPASS SAN FRANCISCO",
+   "amount": -9.99
+  },
+  {
+   "date": "2026-09-17",
+   "description": "TARGET 00012 COLUMBUS OH",
+   "amount": -36.18
+  },
+  {
+   "date": "2026-09-18",
+   "description": "SIRIUSXM RADIO 888-635-5144",
+   "amount": -10.99
+  },
+  {
+   "date": "2026-09-19",
+   "description": "STARBUCKS STORE 10233",
+   "amount": -6.45
+  },
+  {
+   "date": "2026-09-20",
+   "description": "PEACOCKTV SUBSCRIPTION NY",
+   "amount": -7.99
+  },
+  {
+   "date": "2026-09-22",
+   "description": "AEP OHIO ELECTRIC PAYMENT",
+   "amount": -69.3
+  },
+  {
+   "date": "2026-09-23",
+   "description": "NON-NETWORK ATM FEE",
+   "amount": -3.5
+  },
+  {
+   "date": "2026-09-23",
+   "description": "ATM WITHDRAWAL 1440 N HIGH ST",
+   "amount": -60
+  },
+  {
+   "date": "2026-09-25",
+   "description": "VENMO PAYMENT 1023849",
+   "amount": -25
+  },
+  {
+   "date": "2026-09-27",
+   "description": "UBER TRIP HELP.UBER.COM",
+   "amount": -18.4
+  },
+  {
+   "date": "2026-09-28",
+   "description": "AMAZON MKTPLACE PMTS AMZN.COM",
+   "amount": -23.17
+  },
+  {
+   "date": "2026-09-30",
+   "description": "MONTHLY SERVICE FEE",
+   "amount": -12
+  }
+ ]
+}

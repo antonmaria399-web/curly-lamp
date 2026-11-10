@@ -2,7 +2,6 @@
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { supabaseBrowser } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { GoogleG } from "@/components/ui/google";
 import { cn } from "@/lib/cn";
@@ -30,7 +29,7 @@ export function AuthForm({
 
   async function google() {
     setBusy("google");
-    const sb = supabaseBrowser();
+    const sb = (await import("@/lib/supabase/client")).supabaseBrowser(); // loaded on click: keeps ~240 KB off the landing page
     const back = inSheet ? window.location.pathname + window.location.search : next;
     const { error } = await sb.auth.signInWithOAuth({
       provider: "google",
@@ -48,7 +47,7 @@ export function AuthForm({
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return setErr({ field: "email", msg: "Enter a valid email, like you@gmail.com." });
     if (password.length < 8) return setErr({ field: "password", msg: "Use at least 8 characters." });
     setBusy("email");
-    const sb = supabaseBrowser();
+    const sb = (await import("@/lib/supabase/client")).supabaseBrowser(); // loaded on click: keeps ~240 KB off the landing page
     const { data, error } =
       mode === "signup"
         ? await sb.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(inSheet ? window.location.pathname + window.location.search : next)}` } })

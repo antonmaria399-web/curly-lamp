@@ -3,6 +3,8 @@ import { createServerClient } from "@supabase/ssr";
 
 const APP_PATHS = ["/dashboard", "/upload", "/leaks", "/settings", "/account", "/reports", "/export", "/pricing"];
 const YEAR = 60 * 60 * 24 * 365;
+/** Never in Google: the signed-in app, auth screens, shared reports. (The public pages are listed in app/sitemap.ts.) */
+const NOINDEX = [...APP_PATHS, "/login", "/signup", "/forgot", "/reset", "/auth", "/s", "/api"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -38,6 +40,8 @@ export async function proxy(request: NextRequest) {
 
   const out = redirect ? NextResponse.redirect(redirect) : response;
   if (redirect) response.cookies.getAll().forEach((c) => out.cookies.set(c));
+
+  if (NOINDEX.some((p) => path === p || path.startsWith(p + "/"))) out.headers.set("X-Robots-Tag", "noindex, nofollow");
 
   // Kwop tracked link (?k=), intended plan (?plan=) and utm_* — first-party cookies, 30 days.
   const k = url.searchParams.get("k");

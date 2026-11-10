@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Legal } from "@/components/legal";
 
-export const metadata: Metadata = { title: "Terms", description: "The short, plain-English terms of Budgeto." };
+export const metadata: Metadata = { title: "Terms", description: "The short, plain-English terms of Budgeto.", alternates: { canonical: "/terms" } };
 
 export default function Terms() {
   return (

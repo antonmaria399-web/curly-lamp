@@ -194,3 +194,104 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* Hero text: CSS-only rise (transform only, never hidden), so the H1 paints with the HTML — no wait for JS. */
+@keyframes rise {
+  from { transform: translateY(14px); }
+  to { transform: translateY(0); }
+}
+.hero-rise {
+  animation: rise 0.6s var(--ease-out-soft) both;
+}
+@keyframes fade-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-rise {
+  animation: fade-rise 0.6s var(--ease-out-soft) both;
+}
+
+/* Long-form text on the SEO pages (guides, comparisons). Direct children only, so cards inside keep their own look. */
+.prose-b {
+  font-size: 17px;
+  line-height: 1.7;
+  color: #3f3f46;
+}
+.prose-b > * + * {
+  margin-top: 1.1em;
+}
+.prose-b > h2 {
+  margin-top: 2.2em;
+  font-size: 28px;
+  line-height: 1.15;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+.prose-b > h3 {
+  margin-top: 1.8em;
+  font-size: 20px;
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.prose-b > h2:first-child {
+  margin-top: 0;
+}
+.prose-b strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.prose-b > p a,
+.prose-b > ul a,
+.prose-b > ol a,
+.prose-b > div > a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: rgb(10 11 10 / 0.25);
+  text-underline-offset: 3px;
+}
+.prose-b > ul,
+.prose-b > ol {
+  padding-left: 1.3em;
+}
+.prose-b > ul { list-style: disc; }
+.prose-b > ol { list-style: decimal; }
+.prose-b > ul > li + li,
+.prose-b > ol > li + li {
+  margin-top: 0.45em;
+}
+.prose-b > ul > li::marker,
+.prose-b > ol > li::marker {
+  color: #a1a1aa;
+}
+.prose-b code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  background: #f1f1f2;
+  border-radius: 6px;
+  padding: 0.1em 0.35em;
+  overflow-wrap: anywhere;
+}
+.prose-b > blockquote {
+  border-left: 3px solid #c8ff3d;
+  background: #fff;
+  border-radius: 0 14px 14px 0;
+  padding: 0.9em 1.1em;
+  color: var(--ink);
+}
+@media (min-width: 640px) {
+  .prose-b > h2 { font-size: 32px; }
+}
+
+/* Scroll reveal without JS (components/ui/reveal.tsx). Visible by default; animated where supported. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: fade-rise linear both;
+      animation-timeline: view();
+      animation-range: entry calc(0% + var(--reveal-shift, 0%)) entry calc(55% + var(--reveal-shift, 0%));
+    }
+  }
+}

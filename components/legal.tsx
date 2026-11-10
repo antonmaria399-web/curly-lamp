@@ -14,6 +14,13 @@ export function Legal({ title, updated, children }: { title: string; updated: st
         <p className="num !mt-2 text-sm">Last updated {updated}</p>
         {children}
       </article>
+      <footer className="mx-auto flex max-w-[720px] flex-wrap gap-x-5 gap-y-2 border-t border-line px-5 py-8 text-sm text-muted">
+        <Link href="/" className="hover:text-fg">Home</Link>
+        <Link href="/guides" className="hover:text-fg">Guides</Link>
+        <Link href="/bank-statement-analyzer" className="hover:text-fg">Bank statement analyzer</Link>
+        <Link href="/privacy" className="hover:text-fg">Privacy</Link>
+        <Link href="/terms" className="hover:text-fg">Terms</Link>
+      </footer>
     </main>
   );
 }
