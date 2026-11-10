@@ -20,8 +20,10 @@ test("landing → sample scan → locked → sign-up → paywall → checkout sh
 
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Find the subscriptions you forgot you pay");
-  // No prices on the landing page.
-  await expect(page.locator("body")).not.toContainText(/\$\d+(\.\d\d)?\s*\/\s*(mo|month|day)\b.*plan/i);
+  // No prices on the landing page, except the GEO FAQ answer "How much does it cost?" (owner's request, Nov 10).
+  const outsideFaq = await page.locator("main > section:not(#faq)").allInnerTexts();
+  expect(outsideFaq.join("\n")).not.toMatch(/\$\d+(\.\d\d)?\s*\/\s*(mo|month|day)\b.*plan/i);
+  await expect(page.locator("#faq")).toContainText("How much does it cost?");
 
   await page.getByRole("button", { name: "Try a sample statement" }).click();
   await expect(page.getByText("Scanning your statement…")).toBeVisible();
