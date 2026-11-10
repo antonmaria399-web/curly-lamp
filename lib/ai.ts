@@ -1,5 +1,5 @@
 import "server-only";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import { analyze, categorize, normalizeMerchant, parseStatementText } from "./engine";
 import { pdfLines } from "./pdf";
 import type { ReportResult, Txn } from "./types";
@@ -12,13 +12,48 @@ import type { ReportResult, Txn } from "./types";
  * The leak detection itself is the same deterministic code for both (lib/engine.ts).
  */
 
-const MODEL = process.env.GEMINI_MODEL || "gemini-flash-latest";
+const WANTED = process.env.GEMINI_MODEL || "gemini-flash-latest";
 
 export class ScanError extends Error {
   constructor(public code: "unreadable" | "no_transactions" | "image_needs_ai" | "ai_failed", message: string) {
     super(message);
   }
 }
+
+let candidates: string[] | null = null;
+const gone = new Set<string>(); // models that answered 404 (skip them for the life of this instance)
+
+/** Stable Flash models this key can use, newest first (cached per instance). Model names change over time. */
+async function flashModels(ai: GoogleGenAI): Promise<string[]> {
+  if (candidates) return candidates;
+  const names: string[] = [];
+  try {
+    const pager = await ai.models.list({ config: { pageSize: 200 } });
+    for await (const m of pager) {
+      const n = (m.name || "").replace(/^models\//, "");
+      const actions = (m as { supportedActions?: string[] }).supportedActions;
+      if (!/^gemini-[\d.]+-flash(-lite)?$/.test(n)) continue; // stable Flash / Flash-Lite only (no preview/tts/image)
+      if (actions && !actions.includes("generateContent")) continue;
+      names.push(n);
+    }
+  } catch (e) {
+    console.error("[ai] list models failed", (e as Error).message);
+  }
+  const ver = (n: string) => parseFloat(n.match(/gemini-([\d.]+)/)?.[1] || "0");
+  // Newest full Flash first, then older Flash, then Lite (busy spells rarely hit every model at once).
+  const full = names.filter((n) => !n.endsWith("-lite")).sort((x, y) => ver(y) - ver(x));
+  const lite = names.filter((n) => n.endsWith("-lite")).sort((x, y) => ver(y) - ver(x));
+  candidates = [...full.slice(0, 3), ...lite.slice(0, 2)];
+  return candidates;
+}
+
+/** Reading a statement needs little reasoning: keep "thinking" low so a scan stays in seconds. */
+function thinking(model: string) {
+  const v = parseFloat(model.match(/gemini-([\d.]+)/)?.[1] || "3");
+  return v >= 3 ? { thinkingLevel: ThinkingLevel.LOW } : { thinkingBudget: 0 };
+}
+
+const retryable = (msg: string) => /NOT_FOUND|is not found|UNAVAILABLE|RESOURCE_EXHAUSTED|high demand|overloaded|DEADLINE|aborted|timed? ?out|\b(404|429|500|503|504)\b/i.test(msg);
 
 const schema = {
   type: "object",
@@ -71,16 +106,48 @@ If the document is not a statement or list of transactions, set is_statement fal
 
 async function withGemini(file: Uint8Array, mime: string): Promise<{ txns: Txn[]; bank: string | null; period: string | null; hints: Record<string, boolean> }> {
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-  const res = await ai.models.generateContent({
-    model: MODEL,
-    contents: [
-      {
-        role: "user",
-        parts: [{ inlineData: { mimeType: mime, data: Buffer.from(file).toString("base64") } }, { text: PROMPT }],
+  const deadline = Date.now() + 48_000; // the route has 60 s; keep room for the text-parser fallback
+  const call = (model: string, ms: number) =>
+    ai.models.generateContent({
+      model,
+      contents: [
+        {
+          role: "user",
+          parts: [{ inlineData: { mimeType: mime, data: Buffer.from(file).toString("base64") } }, { text: PROMPT }],
+        },
+      ],
+      config: {
+        responseMimeType: "application/json",
+        responseJsonSchema: schema,
+        temperature: 0,
+        thinkingConfig: thinking(model),
+        abortSignal: AbortSignal.timeout(ms),
       },
-    ],
-    config: { responseMimeType: "application/json", responseJsonSchema: schema, temperature: 0 },
-  });
+    });
+  // Try each model once; on "busy" answers, go round again after a short pause until the time budget runs out.
+  let res: Awaited<ReturnType<typeof call>> | null = null;
+  let last: unknown = null;
+  let pool = gone.has(WANTED) ? await flashModels(ai) : [WANTED];
+  for (let round = 0; round < 4 && !res; round++) {
+    if (round > 0) {
+      pool = await flashModels(ai);
+      if (round > 1) await new Promise((r) => setTimeout(r, 1500 * round));
+    }
+    for (const model of pool.filter((m) => !gone.has(m))) {
+      const left = deadline - Date.now();
+      if (left < 8_000 || res) break;
+      try {
+        res = await call(model, left);
+      } catch (e) {
+        last = e;
+        const msg = (e as Error).message || String(e);
+        console.warn(`[ai] ${model} failed (round ${round}): ${msg.slice(0, 160)}`);
+        if (/NOT_FOUND|is not found/.test(msg)) gone.add(model);
+        if (!retryable(msg)) throw e;
+      }
+    }
+  }
+  if (!res) throw last ?? new Error("no Gemini model available");
   const text = res.text ?? "";
   const data = JSON.parse(text) as {
     is_statement: boolean;
