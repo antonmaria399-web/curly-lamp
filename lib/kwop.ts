@@ -63,6 +63,11 @@ export async function getPlan(email: string | null | undefined, opts: { fresh?: 
   const none: PlanState = { paid: false, plan: null, status: null, until: null };
   if (!email) return none;
   const key = email.toLowerCase();
+  // Local testing only (never in production): DEV_PAID="email:planId,email:planId" fakes a paid plan.
+  if (process.env.NODE_ENV !== "production" && process.env.DEV_PAID) {
+    const m = process.env.DEV_PAID.split(",").map((x) => x.split(":")).find(([e]) => e.toLowerCase() === key);
+    if (m) return { paid: true, plan: { id: Number(m[1]), name: Number(m[1]) === 1645 ? "Budgeto Starter" : Number(m[1]) === 1647 ? "Budgeto Power" : "Budgeto Pro" }, status: "active", until: new Date(Date.now() + 20 * 86400000).toISOString() };
+  }
   const hit = planCache.get(key);
   if (!opts.fresh && hit && Date.now() - hit.at < 60_000) return hit.state;
   try {

@@ -31,15 +31,15 @@ export function LedgerRow({
       transition={{ delay: Math.min(index, 10) * 0.04, duration: 0.35 }}
       className={cn("group rounded-2xl border border-line bg-surface px-4 py-3.5 transition", status === "cancelled" && "opacity-70")}
     >
-      <button className="flex w-full items-baseline gap-2 text-left" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+      <button className="flex w-full items-center gap-2 text-left" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
         <span className="flex min-w-0 items-center gap-2">
           <span
             className={cn(
-              "mt-0.5 h-2 w-2 shrink-0 rounded-full",
+              "h-2 w-2 shrink-0 rounded-full",
               leak.kind === "fee" ? "bg-loss" : status === "cancelled" ? "bg-gain" : status === "keep" ? "bg-muted" : "bg-lime ring-2 ring-lime/30",
             )}
           />
-          <span className={cn("truncate font-medium", status === "cancelled" && "line-through decoration-fg/30")}>{leak.merchant}</span>
+          <span className={cn("line-clamp-2 font-medium leading-snug", status === "cancelled" && "line-through decoration-fg/30")}>{leak.merchant}</span>
         </span>
         <span className="ledger-leader" />
         <span className="num shrink-0 text-[15px] font-semibold text-loss">−{usd(leak.monthly)}</span>
@@ -135,11 +135,11 @@ export function LockedReport({
   const widths = [132, 96, 150, 110, 88, 124];
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-        <span className="truncate font-medium text-fg">{fileName}</span>
-        {result.bank && <span>· {result.bank}</span>}
-        {result.period && <span className="num">· {result.period}</span>}
-        <span className="num">· {result.transactions_count} transactions read</span>
+      <div className="text-sm">
+        <p className="truncate font-medium text-fg">{fileName}</p>
+        <p className="mt-0.5 text-muted">
+          {[result.bank, result.period, `${result.transactions_count} transactions read`].filter(Boolean).join(" · ")}
+        </p>
       </div>
 
       <button onClick={onUnlock} className="relative block w-full text-left" aria-label={unlockLabel}>

@@ -89,11 +89,19 @@ Tier = rank by price of Kwop's plans (`lib/quotas.ts`). Counted on the server pe
 - Lint: `react-hooks/set-state-in-effect` is a warning on purpose (hydration-safe mount state).
 
 ## Status / to do
-- [x] Steps 0–4, 6–8 code written; `npm run build` and `npm run lint` clean (warnings only).
-- [ ] Step 5 Supabase project + migrations (blocked: proxy-injected Supabase token rejected in the first cloud session).
-- [ ] Gemini key (owner to provide) → `GEMINI_API_KEY`.
-- [ ] Google sign-in (owner steps, then `NEXT_PUBLIC_GOOGLE_ENABLED=1`).
-- [ ] e2e test, premium pass, Vercel deploy, Kwop connect, security pass.
+- [x] Steps 0–4, 6–9b code: build + lint clean (warnings only), e2e `tests/e2e.spec.ts` green 3× phone + 3× computer on the production build.
+- [x] Verified locally on a real Supabase stack (Docker: `dockerd &` then `npx supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,realtime,storage-api,postgres-meta`), real Kwop plans and a real Whop checkout created by Kwop.
+- [x] Security pass: RLS (another user's rows unreadable / undeletable / unwritable), paid routes checked with getPlan() on the server, no KWOP_API / service key in `.next/static`, zod/regex validation on API routes, error.tsx + not-found.tsx.
+- [ ] **Go online: `bash scripts/deploy.sh`** (Supabase project + schema + auth config, Vercel project + env + deploy, Kwop connect). Blocked in the first cloud session: the Supabase/Vercel tokens saved as network secrets are rejected (the proxy injects an invalid value). Fix: in the environment settings, delete both network secrets and add the tokens again (Supabase `sbp_…` token, Vercel token), or add them as env vars `SUPABASE_ACCESS_TOKEN` / `VERCEL_TOKEN` and allow hosts api.supabase.com + api.vercel.com.
+- [ ] After deploy: test the live URL (e2e with `BASE_URL=… npx playwright test`; needs `<ref>.supabase.co`, `*.vercel.app` host, cdn.whop.com / whop.com allowed for the sandbox browser), check https://kwop.io/budgeto/app.
+- [ ] Gemini key (owner) → `GEMINI_API_KEY` in .env.local + Vercel. Until then text PDFs work with the built-in parser; photos ask for the PDF.
+- [ ] Google sign-in (owner steps, then Supabase `external_google_*` + `NEXT_PUBLIC_GOOGLE_ENABLED=1`).
+
+## Local testing
+- `.env.local`: local Supabase keys, `FREE_TRIES_PER_DAY=1000`, `DEV_PAID=email:planId,…` (fakes a paid plan, ignored in production). Test users power@ / starter@budgeto-test.dev, password `Leaks-are-bad-2026`.
+- Behind the sandbox proxy, run Node with `NODE_USE_ENV_PROXY=1 NO_PROXY="localhost,127.0.0.1,$NO_PROXY"` so server fetches to Kwop work.
+- Screens: `node scripts/slices.mjs / home 390 844`, `node scripts/funnel-shots.mjs 390 844`, `node scripts/app-shots.mjs power@budgeto-test.dev 390 844 [scans]`.
+- E2E: `WHOP_STUB=1 npx playwright test --repeat-each=3` (stub only because cdn.whop.com is blocked in the sandbox).
 
 ## Kwop API (server only, `lib/kwop.ts`)
 `KWOP_API` env var. GET plans · POST /checkout · POST /confirm · GET /plan?email · POST /cancel · POST /event · POST /connect. See `docs/BUILD-SPEC.md` §8. Never hardcode a price or plan id. Kwop tracked link `?k=` → cookie `kwop_k` (30 d) → `profiles.kwop_k` → sent as `k` on checkout.

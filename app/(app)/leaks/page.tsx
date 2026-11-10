@@ -75,7 +75,9 @@ export default async function LeaksPage() {
                 {series.map((s) => (
                   <div key={s.id} className="flex flex-1 flex-col items-center gap-2">
                     <span className="num text-xs text-muted">{usd(s.result.monthly_leaks, 0)}</span>
-                    <div className="w-full rounded-t-lg bg-loss/70" style={{ height: `${(s.result.monthly_leaks / maxSeries) * 100}%`, minHeight: 4 }} />
+                    <div className="flex h-24 w-full items-end">
+                      <div className="w-full rounded-t-lg bg-loss/70" style={{ height: `${Math.max(4, (s.result.monthly_leaks / maxSeries) * 100)}%` }} />
+                    </div>
                     <span className="max-w-full truncate text-[11px] text-muted">{s.result.period?.split(/[-–]/)[0]?.trim() || new Date(s.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
                   </div>
                 ))}

@@ -32,8 +32,9 @@ export async function POST(req: Request) {
       q("ip", ip),
       viewer.user ? q("user_id", viewer.user.id) : Promise.resolve({ count: 0 }),
     ]);
-    if (checks.some((c) => (c.count ?? 0) >= 3)) {
-      return fail("You've used your 3 free scans for today. Unlock Budgeto to keep scanning.", 429, { code: "free_limit" });
+    const free = Number(process.env.FREE_TRIES_PER_DAY) || 3;
+    if (checks.some((c) => (c.count ?? 0) >= free)) {
+      return fail(`You've used your ${free} free scans for today. Unlock Budgeto to keep scanning.`, 429, { code: "free_limit" });
     }
   } else {
     const used = await scansUsed(viewer.user!.id, periodStart(viewer.plan.until));
