@@ -439,7 +439,7 @@ declare global {
   interface Window {
     WhopElements?: () => {
       checkout: {
-        create: (o: Record<string, unknown>) => { create: (k: string) => { mount: (sel: string) => void }; destroy: () => void };
+        create: (o: Record<string, unknown>) => { create: (k: string, props?: Record<string, unknown>) => { mount: (sel: string) => void }; destroy: () => void };
       };
     };
   }
@@ -517,7 +517,7 @@ function CheckoutSheet({ sel, onClose, onPaid }: { sel: { plan: UIPlan; period: 
         },
       });
       ckRef.current = ck;
-      ck.create("checkout").mount("#whop-checkout");
+      ck.create("checkout", j.email ? { buyerEmail: j.email, lockBuyerEmail: true } : undefined).mount("#whop-checkout");
       timers.push(
         window.setTimeout(() => {
           if (!shown.current && document.querySelector("#whop-checkout iframe")) show();

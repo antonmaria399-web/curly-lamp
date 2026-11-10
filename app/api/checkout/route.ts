@@ -21,7 +21,8 @@ export async function POST(req: Request) {
     const r = await createCheckout({ plan, period, email: user.email, k: k && /^[A-Za-z0-9]{1,12}$/.test(k) ? k : null });
     if (r.status === 409) return json({ error: "payments_off" }, 409);
     if (r.status >= 400 || !r.body.ref) return fail("Checkout is unavailable right now. Try again in a minute.", 502);
-    return json({ embed: r.body.embed ?? null, ref: r.body.ref, fallback_url: r.body.fallback_url ?? null });
+    // email: prefilled + locked in Whop's checkout, so the payment always matches this account (plans are looked up by email).
+    return json({ embed: r.body.embed ?? null, ref: r.body.ref, fallback_url: r.body.fallback_url ?? null, email: user.email });
   } catch (e) {
     console.error("[checkout]", (e as Error).message);
     return fail("Checkout is unavailable right now. Try again in a minute.", 502);
