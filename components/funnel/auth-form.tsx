@@ -49,9 +49,9 @@ export function AuthForm({
     if (password.length < 8) return setErr({ field: "password", msg: "Use at least 8 characters." });
     setBusy("email");
     const sb = supabaseBrowser();
-    const { error } =
+    const { data, error } =
       mode === "signup"
-        ? await sb.auth.signUp({ email: email.trim(), password })
+        ? await sb.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(inSheet ? window.location.pathname + window.location.search : next)}` } })
         : await sb.auth.signInWithPassword({ email: email.trim(), password });
     if (error) {
       setBusy(null);
@@ -60,7 +60,13 @@ export function AuthForm({
         return setErr({ field: "email", msg: "This email already has an account.", login: true });
       if (m.includes("invalid login")) return setErr({ field: "password", msg: "Wrong email or password. Try again or reset it." });
       if (m.includes("rate")) return setErr({ field: "form", msg: "Too many tries. Wait a minute and try again." });
+      if (m.includes("not confirmed")) return setErr({ field: "form", msg: "Confirm your email first: open the link we sent you." });
       return setErr({ field: "form", msg: "Something went wrong. Try again." });
+    }
+    if (!data.session) {
+      // Email confirmation is on in Supabase: no session until the link is clicked. Never continue logged out.
+      setBusy(null);
+      return setErr({ field: "form", msg: `Almost there: we sent a link to ${email.trim()}. Open it to save your leak report.` });
     }
     await fetch("/api/claim", { method: "POST" }).catch(() => {});
     if (onDone) {
