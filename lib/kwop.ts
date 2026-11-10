@@ -20,7 +20,8 @@ export type PlanState = { paid: boolean; plan: { id: number; name: string } | nu
 const API = () => {
   const v = process.env.KWOP_API;
   if (!v) throw new Error("KWOP_API missing");
-  return v.replace(/\/$/, "");
+  // Tolerate copy-paste noise: spaces, quotes, a "KWOP_API=" prefix, trailing slash.
+  return v.trim().replace(/^KWOP_API=/, "").replace(/^["']|["']$/g, "").trim().replace(/\/+$/, "");
 };
 
 async function kwop(path: string, init?: RequestInit & { timeoutMs?: number }) {
