@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
-import Script from "next/script";
+import { KwopFlow } from "@/components/kwop-flow";
 import { Check, EyeOff, FileText, Lock, ShieldCheck, Trash2, X } from "lucide-react";
 import { TopBar, Footer } from "@/components/landing/chrome";
 import { HeroFunnel } from "@/components/landing/hero-funnel";
@@ -346,7 +346,7 @@ export default async function Home() {
 
       <Footer />
       <StickyCTA />
-      <Script src="https://kwop.io/flow.js" data-site="s_5cdc0c337f" strategy="afterInteractive" />
+      <KwopFlow />
     </main>
   );
 }

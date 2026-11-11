@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Script from "next/script";
+import { KwopFlow } from "./kwop-flow";
 import { Logo } from "@/components/ui/logo";
 
 /** Centered card on a calm background (sign-up, log-in, password). */
@@ -19,7 +19,7 @@ export function AuthShell({ title, sub, children, track = true }: { title: strin
           <div className="mt-6">{children}</div>
         </div>
       </div>
-      {track && <Script src="https://kwop.io/flow.js" data-site="s_5cdc0c337f" strategy="afterInteractive" />}
+      {track && <KwopFlow />}
     </main>
   );
 }
