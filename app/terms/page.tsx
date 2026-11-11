@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Legal } from "@/components/legal";
 import { canonical } from "@/lib/seo";
+import { REFUND_DAYS, STATEMENT_NAME, SUPPORT_EMAIL } from "@/lib/brand";
 
 export const metadata: Metadata = {
   title: "Terms",
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function Terms() {
   return (
-    <Legal title="Terms" updated="November 9, 2026">
+    <Legal title="Terms" updated="November 11, 2026">
       <h2>What Budgeto is</h2>
       <p>Budgeto reads a bank or card statement you upload and lists the recurring charges and fees it finds. It is an information tool, not financial, tax or legal advice. Always double-check a charge before you cancel anything.</p>
       <h2>Your account</h2>
@@ -21,6 +22,8 @@ export default function Terms() {
         <li>Plans renew automatically every month or year until you cancel. Prices are in USD.</li>
         <li>Each plan includes a number of statement scans per billing period, shown before you pay.</li>
         <li>Cancel anytime in Account → Billing. You are not charged again after you cancel.</li>
+        <li>{REFUND_DAYS}-day money-back guarantee: if you&apos;re not happy, email {SUPPORT_EMAIL} within {REFUND_DAYS} days of a payment and we refund it in full.</li>
+        <li>Charges show on your card or bank statement as {STATEMENT_NAME}.</li>
         <li>Payments are processed by Whop through Kwop. Their terms apply to the payment itself.</li>
       </ul>
       <h2>Fair use</h2>
@@ -28,7 +31,7 @@ export default function Terms() {
       <h2>Accuracy</h2>
       <p>The AI can misread a line. We show you every charge so you can check it. Budgeto is provided “as is”, and our liability is limited to what you paid us in the last 12 months.</p>
       <h2>Changes and contact</h2>
-      <p>We may update these terms and will show the new date here. Questions: reply to any Budgeto email or write from your account email.</p>
+      <p>We may update these terms and will show the new date here. Questions or refunds: write to {SUPPORT_EMAIL}.</p>
     </Legal>
   );
 }

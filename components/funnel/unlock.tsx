@@ -7,6 +7,7 @@ import { Sheet, useMounted } from "@/components/ui/sheet";
 import { cn } from "@/lib/cn";
 import { AuthForm } from "./auth-form";
 import { LogoMark } from "@/components/ui/logo";
+import { REFUND_DAYS, STATEMENT_NAME, SUPPORT_EMAIL } from "@/lib/brand";
 
 export type UIPlan = {
   id: number;
@@ -195,7 +196,10 @@ const FAQ = [
     q: "Will it work with my bank?",
     a: "Yes, if your bank lets you download a PDF statement (Chase, Bank of America, Wells Fargo, Capital One, credit unions and cards all do). You already saw it work on yours.",
   },
-  { q: "Can I cancel anytime?", a: "Yes. Account → Billing → Cancel my subscription. Two taps, no call, no email. You're never charged again after that." },
+  {
+    q: "Can I cancel anytime?",
+    a: `Yes. Account → Billing → Cancel my subscription. Two taps, no call. You're never charged again after that. And if Budgeto isn't for you, email ${SUPPORT_EMAIL} within ${REFUND_DAYS} days of paying for a full refund.`,
+  },
   { q: "What happens right after I pay?", a: "Your full leak report unlocks right here, in seconds. No email to check, no reload." },
 ];
 
@@ -329,6 +333,16 @@ export function Paywall({
           </p>
         </div>
 
+        <div className="mt-5 flex gap-3 rounded-[18px] border border-gain/25 bg-gain/[0.06] p-4">
+          <BadgeCheck className="mt-0.5 h-5 w-5 shrink-0 text-gain" />
+          <div className="text-sm">
+            <p className="font-semibold">{REFUND_DAYS}-day money-back guarantee</p>
+            <p className="mt-1 text-muted">
+              Not happy? Email <span className="font-medium text-fg">{SUPPORT_EMAIL}</span> within {REFUND_DAYS} days of paying and get a full refund. No questions asked.
+            </p>
+          </div>
+        </div>
+
         <div className="mt-6 flex items-center justify-center gap-2 text-xs text-muted">
           <ShieldCheck className="h-4 w-4" /> Secure payment, processed by Whop
           <span className="rounded-md border border-line px-1.5 py-0.5 font-medium">Whop</span>
@@ -336,6 +350,7 @@ export function Paywall({
             <CreditCard className="h-3 w-3" /> Card
           </span>
         </div>
+        <p className="num mt-2 text-center text-[11px] text-muted">Shows on your statement as {STATEMENT_NAME}</p>
 
         <div className="mt-8 rounded-[18px] border border-line bg-surface-2/60 p-5">
           <h4 className="font-semibold">What you unlock with {short(selected.name)}</h4>
@@ -577,7 +592,7 @@ function CheckoutSheet({ sel, onClose, onPaid }: { sel: { plan: UIPlan; period: 
           </div>
         )}
         <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-muted">
-          <Lock className="h-3 w-3" /> Secure payment by Whop · Cancel in 1 click
+          <Lock className="h-3 w-3" /> Secure payment by Whop · {REFUND_DAYS}-day money-back guarantee
         </p>
       </div>
     </Sheet>

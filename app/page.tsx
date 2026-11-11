@@ -45,7 +45,7 @@ const QUESTIONS = [
   },
   {
     q: "How much does it cost?",
-    a: "You try it free first. The plans show up once your first leak report is ready.",
+    a: "You try it free first. The plans show up once your first leak report is ready, and every plan has a 7-day money-back guarantee.",
   },
 ];
 
