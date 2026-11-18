@@ -9,7 +9,8 @@ import { Phone } from "./phone";
 /** Every main button leads into the funnel: the hero's drop zone. */
 export function scrollToScan() {
   const el = document.getElementById("scan");
-  if (!el) return;
+  // Pages without the live drop zone (creators, comparisons…): go to the one on the home page.
+  if (!el) return void window.location.assign("/#scan");
   el.scrollIntoView({ behavior: "smooth", block: "center" });
   el.animate([{ boxShadow: "0 0 0 0 rgba(200,255,61,0)" }, { boxShadow: "0 0 0 8px rgba(200,255,61,.35)" }, { boxShadow: "0 0 0 0 rgba(200,255,61,0)" }], { duration: 1200, delay: 450 });
 }

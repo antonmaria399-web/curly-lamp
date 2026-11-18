@@ -52,6 +52,9 @@ export async function proxy(request: NextRequest) {
   if (k && /^[A-Za-z0-9]{1,12}$/.test(k)) out.cookies.set("kwop_k", k, { maxAge: 60 * 60 * 24 * 30, sameSite: "lax", path: "/" });
   const plan = url.searchParams.get("plan");
   if (plan && plan.length <= 40) out.cookies.set("bdg_plan", plan, { maxAge: 60 * 60 * 24 * 30, sameSite: "lax", path: "/" });
+  // Creator links (Kwop → Tracking) open Budgeto with ?ref=<code>: credited to that creator in /admin.
+  const ref = url.searchParams.get("ref");
+  if (ref && /^[A-Za-z0-9_-]{1,24}$/.test(ref)) out.cookies.set("bdg_ref", ref, { maxAge: 60 * 60 * 24 * 30, sameSite: "lax", path: "/" });
   const utm: Record<string, string> = {};
   url.searchParams.forEach((v, key) => {
     if (key.startsWith("utm_") && v.length <= 100) utm[key] = v;

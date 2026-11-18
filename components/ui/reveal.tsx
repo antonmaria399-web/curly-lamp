@@ -66,13 +66,22 @@ export function CountUp({
   const inView = useInView(ref, { once: true });
   const reduce = useReducedMotion();
   const [shown, setShown] = useState(0);
+  const last = useRef(0); // a new value counts from the number on screen, not from 0
   useEffect(() => {
     if (!inView || !start) return;
     if (reduce) {
       setShown(value);
+      last.current = value;
       return;
     }
-    const c = animate(0, value, { duration: 1.3, ease: [0.16, 1, 0.3, 1], onUpdate: setShown });
+    const c = animate(last.current, value, {
+      duration: last.current === 0 ? 1.3 : 0.6,
+      ease: [0.16, 1, 0.3, 1],
+      onUpdate: (v) => {
+        last.current = v;
+        setShown(v);
+      },
+    });
     return () => c.stop();
   }, [inView, value, reduce, start]);
   return (

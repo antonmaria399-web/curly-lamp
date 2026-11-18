@@ -1,12 +1,14 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { KwopFlow } from "@/components/kwop-flow";
-import { Check, EyeOff, FileText, Lock, ShieldCheck, Trash2, X } from "lucide-react";
+import { Check, EyeOff, FileText, Gift, Lock, ShieldCheck, Trash2, X } from "lucide-react";
 import { TopBar, Footer } from "@/components/landing/chrome";
 import { HeroFunnel } from "@/components/landing/hero-funnel";
 import { VSL } from "@/components/landing/vsl";
-import { CTA, FAQ, FeatureLoop, HeroNotifications, HowPhone, StickyCTA } from "@/components/landing/bits";
-import { Phone } from "@/components/landing/phone";
+import { CTA, FAQ, FeatureLoop, HowPhone, StickyCTA } from "@/components/landing/bits";
+import { ScrollStory } from "@/components/landing/story";
+import { LeakCalculator } from "@/components/landing/calculator";
+import { appLd, faqLd } from "@/components/landing/public-page";
 import { Reveal, Stagger, StaggerItem, CountUp } from "@/components/ui/reveal";
 import type { Metadata } from "next";
 import { getViewer } from "@/lib/viewer";
@@ -49,12 +51,16 @@ const QUESTIONS = [
   },
 ];
 
-export default async function Home() {
+export default async function Home({ searchParams }: PageProps<"/">) {
   const viewer = await getViewer();
+  const invited = (await searchParams).invite === "1";
   const hasVideo = existsSync(path.join(process.cwd(), "public", "vsl.mp4"));
 
   return (
     <main className="bg-night text-white">
+      {[appLd(canonical("/")), faqLd(QUESTIONS)].map((j, i) => (
+        <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(j).replace(/</g, "\\u003c") }} />
+      ))}
       <TopBar />
 
       {/* HERO: the product itself */}
@@ -63,6 +69,13 @@ export default async function Home() {
         <div className="top-glow pointer-events-none absolute inset-0" />
         <div className="relative mx-auto max-w-[1120px] px-4 sm:px-8">
           <div className="mx-auto max-w-[820px] text-center">
+            {invited && (
+              <Reveal>
+                <p className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-lime/30 bg-lime/10 px-4 py-2 text-[13px] text-lime">
+                  <Gift className="h-4 w-4" /> A friend invited you: sign up and you both get 3 extra scans.
+                </p>
+              </Reveal>
+            )}
             <Reveal>
               <span className="label-mono text-white/60">[ AI statement scan ]</span>
             </Reveal>
@@ -98,6 +111,26 @@ export default async function Home() {
           <Reveal>
             <VSL video={hasVideo} />
           </Reveal>
+        </div>
+      </section>
+
+      {/* PLAY WITH IT: the leak simulator */}
+      <section className="relative pb-24 sm:pb-32" aria-label="Subscription calculator">
+        <div className="mx-auto max-w-[1040px] px-4 sm:px-8">
+          <Reveal className="mx-auto max-w-2xl text-center">
+            <span className="label-mono text-white/50">[ Try it in your head first ]</span>
+            <h2 className="title-xl mt-4 text-[36px] sm:text-[52px]">
+              Tap what you pay for.
+              <br />
+              <span className="grad-text">Watch it add up.</span>
+            </h2>
+          </Reveal>
+          <Reveal delay={0.08} className="mt-10 rounded-[28px] border border-white/10 bg-white/[0.03] p-4 sm:p-7">
+            <LeakCalculator dark compact />
+          </Reveal>
+          <div className="mt-8 flex justify-center">
+            <CTA />
+          </div>
         </div>
       </section>
 
@@ -212,26 +245,20 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* IN ACTION: phone + notifications */}
-      <section className="relative overflow-hidden py-24 sm:py-32">
-        <div className="dot-grid pointer-events-none absolute inset-0 opacity-60" />
-        <div className="relative mx-auto grid max-w-[1120px] items-center gap-14 px-5 sm:px-8 md:grid-cols-2">
-          <Reveal>
-            <span className="label-mono text-white/50">[ After your first scan ]</span>
+      {/* THE STORY, told by the scroll: a sticky phone whose screen changes step by step */}
+      <section className="relative py-24 sm:py-32" aria-label="From PDF to savings">
+        <div className="mx-auto max-w-[1120px] px-5 sm:px-8">
+          <Reveal className="max-w-2xl">
+            <span className="label-mono text-white/50">[ From PDF to savings ]</span>
             <h2 className="title-xl mt-4 text-[38px] sm:text-[56px]">
-              It keeps watching
+              Five seconds today.
               <br />
-              <span className="grad-text">so you don&apos;t have to.</span>
+              <span className="grad-text">Watching every month.</span>
             </h2>
-            <p className="mt-5 max-w-md text-[17px] text-white/60">
-              Scan next month&apos;s statement and Budgeto compares: new subscriptions, price hikes, fees that came back. Your savings tracker keeps the score.
-            </p>
           </Reveal>
-          <Reveal delay={0.1}>
-            <Phone lock>
-              <HeroNotifications />
-            </Phone>
-          </Reveal>
+          <div className="mt-6 md:mt-0">
+            <ScrollStory />
+          </div>
         </div>
       </section>
 

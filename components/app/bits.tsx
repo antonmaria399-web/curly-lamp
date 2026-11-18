@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Lock, Trash2, FileText, Share2, Check, Target, Loader2 } from "lucide-react";
+import { Lock, Trash2, FileText, Target, Loader2 } from "lucide-react";
 import { Scanner } from "@/components/funnel/scanner";
 import { useUnlock } from "@/components/funnel/unlock";
 import { FullReport } from "@/components/funnel/report";
@@ -130,37 +130,7 @@ export function InteractiveReport({ report, actions: initial }: { report: ViewRe
   return <FullReport result={report.result as ReportResult} actions={actions} onAction={act} onLockedFees={() => openUpgrade(2)} />;
 }
 
-export function ShareButton({ id, shared: initial }: { id: string; shared: boolean }) {
-  const [shared, setShared] = useState(initial);
-  const [copied, setCopied] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const share = async () => {
-    setBusy(true);
-    if (!shared) {
-      const r = await fetch(`/api/reports/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ shared: true }) });
-      if (!r.ok) return setBusy(false);
-      setShared(true);
-    }
-    const url = `${location.origin}/s/${id}`;
-    setBusy(false);
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: "My Budgeto leak report", text: "I found the subscriptions I forgot I was paying for with Budgeto.", url });
-        return;
-      }
-    } catch {
-      return;
-    }
-    await navigator.clipboard?.writeText(url).catch(() => {});
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-  return (
-    <Button variant="outline" onClick={share} loading={busy}>
-      {copied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />} {copied ? "Link copied" : "Share"}
-    </Button>
-  );
-}
+export { ShareButton } from "./growth";
 
 export function GoalCard({ goal, saved, enabled }: { goal: number | null; saved: number; enabled: boolean }) {
   const router = useRouter();

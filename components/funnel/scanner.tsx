@@ -8,6 +8,7 @@ import type { LockedResult, ReportResult } from "@/lib/types";
 import { FullReport, LockedReport, ScanErrorBox } from "./report";
 import { useUnlock } from "./unlock";
 import { MainButton } from "@/components/ui/button";
+import { InviteCard } from "@/components/app/growth";
 
 type Done = { id: string; file_name: string; result: LockedResult | (ReportResult & { fees_locked?: number }) };
 
@@ -399,6 +400,9 @@ export function Scanner({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Right after the first RESULT: invite friends for extra scans (counted on the server). */}
+      {stage === "done" && done && authed && <InviteCard compact className="mt-4 text-fg" />}
 
       {sticky && locked && authed && stage === "done" && (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/90 px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 text-fg backdrop-blur md:hidden">

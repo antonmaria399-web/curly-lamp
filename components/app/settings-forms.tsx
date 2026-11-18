@@ -135,7 +135,12 @@ export function RulesEditor({ rules, enabled }: { rules: Rule[]; enabled: boolea
 
 export function BillingCard({ planName, until, paid, status, tier }: { planName: string | null; until: string | null; paid: boolean; status: string | null; tier: number }) {
   const { openUpgrade, openPaywall } = useUnlock();
-  const [step, setStep] = useState<0 | 1>(0);
+  const { plans } = useUnlock();
+  const [step, setStep] = useState<"idle" | "why" | "answer">("idle");
+  const [reason, setReason] = useState<Reason | null>(null);
+  const [fid, setFid] = useState<number | null>(null);
+  const [missing, setMissing] = useState("");
+  const [thanks, setThanks] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ message: string; manage_url?: string } | null>(null);
   if (!paid)
@@ -147,6 +152,23 @@ export function BillingCard({ planName, until, paid, status, tier }: { planName:
         </Button>
       </div>
     );
+  const current = plans.find((p) => planName && p.name.toLowerCase().endsWith(planName.toLowerCase()));
+  const pick = async (r: Reason) => {
+    setReason(r);
+    setStep("answer");
+    const j = await fetch("/api/feedback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ reason: r }) })
+      .then((x) => x.json())
+      .catch(() => null);
+    if (j?.id) setFid(j.id);
+  };
+  const cancel = async () => {
+    setBusy(true);
+    const r = await fetch("/api/cancel", { method: "POST" });
+    const j = await r.json().catch(() => ({ message: "Try again in a minute." }));
+    setBusy(false);
+    setMsg({ message: j.message || j.error, manage_url: j.manage_url });
+    setStep("idle");
+  };
   return (
     <div className="rounded-2xl border border-line bg-surface p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -165,30 +187,91 @@ export function BillingCard({ planName, until, paid, status, tier }: { planName:
           )}
         </div>
       </div>
-      <div className="mt-5 flex flex-wrap gap-2">
-        {tier < 3 && <Button onClick={() => openUpgrade()}>Change plan</Button>}
-        {step === 0 ? (
-          <Button variant="outline" onClick={() => setStep(1)}>
+      {step === "idle" && (
+        <div className="mt-5 flex flex-wrap gap-2">
+          {tier < 3 && <Button onClick={() => openUpgrade()}>Change plan</Button>}
+          <Button variant="outline" onClick={() => setStep("why")}>
             Cancel my subscription
           </Button>
-        ) : (
-          <Button
-            variant="danger"
-            loading={busy}
-            onClick={async () => {
-              setBusy(true);
-              const r = await fetch("/api/cancel", { method: "POST" });
-              const j = await r.json().catch(() => ({ message: "Try again in a minute." }));
-              setBusy(false);
-              setMsg({ message: j.message || j.error, manage_url: j.manage_url });
-              setStep(0);
-            }}
-          >
-            Yes, cancel it
-          </Button>
-        )}
-      </div>
-      {step === 1 && <p className="mt-3 text-sm text-muted">After this, you won&apos;t be charged again.</p>}
+        </div>
+      )}
+      {step === "why" && (
+        <div className="mt-5">
+          <p className="font-medium">Before you go: why are you cancelling?</p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {REASONS.map(([k, l]) => (
+              <button key={k} onClick={() => pick(k)} className="h-12 rounded-xl border border-line px-4 text-left text-sm font-medium transition hover:border-fg/30 active:scale-[0.98]">
+                {l}
+              </button>
+            ))}
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button variant="danger" loading={busy} onClick={cancel}>
+              Cancel anyway
+            </Button>
+            <Button variant="ghost" onClick={() => setStep("idle")}>
+              Keep my plan
+            </Button>
+          </div>
+        </div>
+      )}
+      {step === "answer" && reason && (
+        <div className="mt-5 space-y-3">
+          {reason === "too_expensive" && (
+            <p className="rounded-xl bg-surface-2 p-3 text-sm">
+              {current?.yearly
+                ? `Paying yearly, ${shortPlan(current.name)} is ${current.yearly.per_day} a day instead of ${current.per_day}. One payment, cancel anytime.`
+                : "Starter is our smallest plan, and every plan can be cancelled in two taps."}
+            </p>
+          )}
+          {reason === "not_using" && (
+            <p className="rounded-xl bg-surface-2 p-3 text-sm">
+              Fair. One tip before you go: subscriptions come back quietly (free trials, price hikes). Scanning one statement a month takes 5 seconds. Your reports stay in your account either way.
+            </p>
+          )}
+          {(reason === "missing" || reason === "other") && (
+            <div>
+              <label className="block text-sm font-medium" htmlFor="missing">
+                {reason === "missing" ? "Tell us what's missing" : "Anything we should know?"}
+              </label>
+              <textarea
+                id="missing"
+                value={missing}
+                onChange={(e) => setMissing(e.target.value)}
+                maxLength={600}
+                rows={3}
+                className="mt-1.5 w-full rounded-xl border border-line bg-bg p-3 text-sm outline-none focus:border-fg/40"
+                placeholder="It's read by the person who builds Budgeto."
+              />
+              <Button
+                variant="outline"
+                className="mt-2"
+                disabled={!missing.trim() || thanks}
+                onClick={async () => {
+                  await fetch("/api/feedback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ reason, detail: missing, id: fid ?? undefined }) }).catch(() => {});
+                  setThanks(true);
+                }}
+              >
+                {thanks ? "Thanks, sent" : "Send"}
+              </Button>
+            </div>
+          )}
+          <div className="flex flex-wrap gap-2">
+            {reason === "too_expensive" && current?.yearly && (
+              <Button variant="lime" onClick={openPaywall}>
+                See yearly
+              </Button>
+            )}
+            <Button variant="danger" loading={busy} onClick={cancel}>
+              Cancel anyway
+            </Button>
+            <Button variant="ghost" onClick={() => setStep("idle")}>
+              Keep my plan
+            </Button>
+          </div>
+          <p className="text-xs text-muted">After cancelling, you won&apos;t be charged again.</p>
+        </div>
+      )}
       {msg && (
         <p className="mt-3 rounded-xl bg-surface-2 p-3 text-sm">
           {msg.message}{" "}
@@ -202,6 +285,15 @@ export function BillingCard({ planName, until, paid, status, tier }: { planName:
     </div>
   );
 }
+
+type Reason = "too_expensive" | "not_using" | "missing" | "other";
+const REASONS: [Reason, string][] = [
+  ["too_expensive", "It's too expensive"],
+  ["not_using", "I'm not using it"],
+  ["missing", "Something's missing"],
+  ["other", "Another reason"],
+];
+const shortPlan = (n: string) => n.replace(/^Budgeto\s+/i, "");
 
 export function ProfileForm({ name: initial, email }: { name: string; email: string }) {
   const [name, setName] = useState(initial);

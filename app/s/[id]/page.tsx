@@ -24,9 +24,12 @@ export async function generateMetadata({ params }: PageProps<"/s/[id]">): Promis
 }
 
 /** Public, shared result: totals only (no merchant list, no bank, no file name). */
-export default async function SharedPage({ params }: PageProps<"/s/[id]">) {
+export default async function SharedPage({ params, searchParams }: PageProps<"/s/[id]">) {
   const r = await load((await params).id);
   if (!r) notFound();
+  // The sharer's invite code rides along: the friend's sign-up gives both of them extra scans.
+  const i = (await searchParams).i;
+  const invite = typeof i === "string" && /^[a-z0-9]{4,12}$/.test(i) ? i : null;
   return (
     <main className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-night px-5 text-center text-white">
       <div className="dot-grid pointer-events-none absolute inset-0" />
@@ -36,10 +39,11 @@ export default async function SharedPage({ params }: PageProps<"/s/[id]">) {
         <p className="mt-10 text-white/60">Someone found</p>
         <p className="num mt-2 text-[56px] font-semibold tracking-tight text-lime sm:text-[88px]">{usd(r.monthly_leaks)}</p>
         <p className="text-white/60">a month in forgotten subscriptions and fees ({r.leaks.length} charges).</p>
-        <Link href="/" className="btn-main mt-10 inline-flex h-16 items-center rounded-full bg-lime px-8 text-[17px] font-semibold text-ink">
+        <Link href={invite ? `/i/${invite}` : "/"} className="btn-main mt-10 inline-flex h-16 items-center rounded-full bg-lime px-8 text-[17px] font-semibold text-ink">
           Find my leaks
         </Link>
         <p className="num mt-4 text-xs uppercase tracking-[0.14em] text-white/40">Free to try · No bank login</p>
+        {invite && <p className="mt-2 text-sm text-white/55">Sign up with this link and you both get 3 extra scans.</p>}
       </div>
     </main>
   );

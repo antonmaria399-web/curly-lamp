@@ -54,16 +54,81 @@ test("landing → sample scan → locked → sign-up → paywall → checkout sh
   await expect(paywall).toBeVisible();
   await paywall.getByRole("button", { name: "Close" }).click();
   await expect(paywall).toBeHidden();
+  // First ✕: one honest offer (yearly, real 30-minute window), once. Second ✕: the locked report.
+  const offer = page.getByRole("dialog", { name: "Yearly offer" });
+  await expect(offer.getByText("[ Before you go ]")).toBeVisible();
+  await expect(offer.getByText(/stays open for 2\d:\d\d|stays open for 30:00/)).toBeVisible();
+  await offer.getByRole("button", { name: "Close" }).click();
+  await expect(offer).toBeHidden();
   await expect(page.getByText("Smartsafe Self Storage").first()).toBeVisible();
 
   await page.goto("/account");
   await expect(page.getByRole("heading", { name: "Account" })).toBeVisible();
-  await expect(page.locator(`input[value="${email}"]`)).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "Email" })).toHaveValue(email);
+  await expect(page.getByText(/Invite a friend, you both get \d+ extra scans/)).toBeVisible();
 
   // The report waits for them in the app, still locked.
   await page.goto("/dashboard");
   await expect(page.getByText("Your leak report").first()).toBeVisible();
   await expect(page.getByText("Smartsafe Self Storage").first()).toBeVisible();
+
+  expect(errors, errors.join("\n")).toEqual([]);
+});
+
+/** A friend arriving from an invite link: both get extra scans, counted on the server. */
+test("invite link → friend signs up → both rewarded · creators form · admin hidden", async ({ page, browser }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  const pw = "Leaks-are-bad-2026";
+  const mk = () => `e2e+${Date.now()}${Math.floor(Math.random() * 1000)}@budgeto-test.dev`;
+
+  // Inviter: sign up on /signup, read their invite link.
+  const inviter = mk();
+  await page.goto("/signup");
+  await page.getByPlaceholder("Email").fill(inviter);
+  await page.getByPlaceholder(/Create a password/).fill(pw);
+  await page.getByRole("button", { name: "Create my account" }).click();
+  await page.waitForURL(/\/(dashboard|upload)/);
+  const inv = await page.evaluate(() => fetch("/api/invite").then((r) => r.json()));
+  expect(inv.code).toMatch(/^[a-z0-9]{7}$/);
+  expect(inv.friends).toBe(0);
+
+  // Friend, in a fresh browser: the invite link lands on the live product with a banner.
+  const ctx = await browser.newContext({ viewport: page.viewportSize() ?? undefined });
+  const friend = await ctx.newPage();
+  await friend.goto(`/i/${inv.code}`);
+  await expect(friend.getByText(/A friend invited you/)).toBeVisible();
+  await friend.getByRole("button", { name: "Try a sample statement" }).click();
+  await expect(friend.getByRole("button", { name: "See my full leak report" }).last()).toBeVisible({ timeout: 60_000 });
+  await friend.getByRole("button", { name: "See my full leak report" }).last().click();
+  const signup = friend.getByRole("dialog", { name: "Save your leak report" });
+  await signup.getByPlaceholder("Email").fill(mk());
+  await signup.getByPlaceholder(/Create a password/).fill(pw);
+  await signup.getByRole("button", { name: "Create my account" }).click();
+  await expect(friend.getByRole("dialog", { name: "Choose your plan" }).getByText("Your leak report is ready.")).toBeVisible();
+  const mine = await friend.evaluate(() => fetch("/api/invite").then((r) => r.json()));
+  expect(mine.earned).toBe(mine.reward.welcome);
+  await ctx.close();
+
+  const after = await page.evaluate(() => fetch("/api/invite").then((r) => r.json()));
+  expect(after.friends).toBe(1);
+  expect(after.left).toBe(after.reward.signup);
+
+  // Creators: public page, application form works.
+  await page.goto("/creators");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Get paid to post");
+  await page.getByPlaceholder("Jordan").fill("E2E Tester");
+  await page.getByPlaceholder("you@email.com").fill(mk());
+  await page.getByPlaceholder("@yourhandle").fill("@e2e_budgeto_test");
+  await page.getByPlaceholder("500").fill("800");
+  await page.getByPlaceholder("United States").fill("United States");
+  await page.getByRole("button", { name: "Apply to post" }).click();
+  // Saved, or (on repeat runs from the same IP) the 3-a-day limit answers kindly.
+  await expect(page.getByText(/Application sent\.|We already got your application today/)).toBeVisible();
+
+  // /admin: only the owner gets in.
+  const r = await page.goto("/admin");
+  expect(r?.status()).toBe(404);
 
   expect(errors, errors.join("\n")).toEqual([]);
 });

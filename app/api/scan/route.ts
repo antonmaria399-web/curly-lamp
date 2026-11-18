@@ -7,6 +7,7 @@ import { getViewer, periodStart, scansUsed } from "@/lib/viewer";
 import { lock, gate } from "@/lib/redact";
 import { clientIp, fail, json, sameOrigin } from "@/lib/http";
 import { track } from "@/lib/kwop";
+import { bonusLeft, spendBonus } from "@/lib/growth";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -64,6 +65,11 @@ export async function POST(req: Request) {
         .gte("created_at", since);
       if ((count ?? 0) >= 20) return fail("You've tried the sample a lot today. Upload your own statement instead.", 429, { code: "sample_limit" });
     }
+  }
+  // Extra scans earned by inviting friends: used only once the normal limit is reached.
+  let bonus = false;
+  if (isSample) {
+    // no limit beyond the per-device cap above
   } else if (viewer.tier === 0) {
     const since = new Date(Date.now() - 86400000).toISOString();
     const q = (col: string, val: string) =>
@@ -75,12 +81,14 @@ export async function POST(req: Request) {
     ]);
     const free = Number(process.env.FREE_TRIES_PER_DAY) || 3;
     if (checks.some((c) => (c.count ?? 0) >= free)) {
-      return fail(`You've used your ${free} free scans for today. Unlock Budgeto to keep scanning.`, 429, { code: "free_limit" });
+      if (viewer.user && (await bonusLeft(viewer.user.id)).left > 0) bonus = true;
+      else return fail(`You've used your ${free} free scans for today. Unlock Budgeto to keep scanning.`, 429, { code: "free_limit" });
     }
   } else {
     const used = await scansUsed(viewer.user!.id, periodStart(viewer.plan.until));
     if (used >= viewer.limits.scans) {
-      return fail(`You've used all ${viewer.limits.scans} scans of this month.`, 429, { code: "quota", used, limit: viewer.limits.scans });
+      if ((await bonusLeft(viewer.user!.id)).left > 0) bonus = true;
+      else return fail(`You've used all ${viewer.limits.scans} scans of this month.`, 429, { code: "quota", used, limit: viewer.limits.scans });
     }
   }
 
@@ -109,6 +117,7 @@ export async function POST(req: Request) {
     console.error("[scan] insert", error.message);
     return fail("We couldn't save your report. Try again.", 500);
   }
+  if (bonus && viewer.user) await spendBonus(viewer.user.id);
   if (viewer.tier === 0 && !isSample) await db.from("tries").insert({ device_id: device, ip, user_id: viewer.user?.id ?? null });
   if (viewer.user) track("feature_used", viewer.user.email, "pdf_statement_scan");
 

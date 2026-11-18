@@ -51,3 +51,4 @@ supabase/.temp
 
 # marketing videos (sent to the owner, not part of the app)
 /videos/
+KWOP-UPGRADE.md

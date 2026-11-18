@@ -12,7 +12,7 @@ export const PRIVATE_PREFIXES = [
   // the app itself, account, checkout (pricing = in-app plans/checkout)
   "/dashboard", "/upload", "/leaks", "/settings", "/account", "/reports", "/export", "/pricing",
   // admin (none today; reserved), API, shared personal results
-  "/admin", "/api", "/s",
+  "/admin", "/api", "/s", "/i",
 ];
 
 export function isPrivatePath(path: string) {

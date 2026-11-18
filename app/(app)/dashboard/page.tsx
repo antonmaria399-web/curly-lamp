@@ -4,6 +4,7 @@ import { ArrowRight, Upload } from "lucide-react";
 import { getViewer, periodStart, scansUsed } from "@/lib/viewer";
 import { myActions, myProfile, myReports } from "@/lib/data";
 import { AppScanner, AutoUnlock, GoalCard, ReportList } from "@/components/app/bits";
+import { InviteCard, WhatsNew } from "@/components/app/growth";
 import { LeakMeter } from "@/components/funnel/report";
 import { usd } from "@/lib/cn";
 
@@ -36,6 +37,7 @@ export default async function Dashboard() {
   return (
     <div className="space-y-8">
       <AutoUnlock />
+      <WhatsNew />
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-sm text-muted">Hi {profile?.name || first}</p>
@@ -82,6 +84,8 @@ export default async function Dashboard() {
           </div>
         </div>
       </div>
+
+      <InviteCard />
 
       <GoalCard goal={profile?.goal_monthly ? Number(profile.goal_monthly) : null} saved={saved} enabled={viewer.limits.goals} />
 

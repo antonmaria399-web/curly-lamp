@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function Privacy() {
   return (
-    <Legal title="Privacy" updated="November 9, 2026">
+    <Legal title="Privacy" updated="November 18, 2026">
       <h2>The short version</h2>
       <p>Your statement file is read once and never stored. We keep your leak reports so you can come back to them, and you can delete them anytime. We never sell your data and we never connect to your bank.</p>
       <h2>What we keep</h2>
@@ -20,6 +20,9 @@ export default function Privacy() {
         <li>What you mark (“I cancelled it”, “I still use it”), your savings goal and rules.</li>
         <li>Usage: how many scans you ran, and basic product events (sign-up, paywall shown, feature used) to improve Budgeto.</li>
         <li>For free tries without an account: a random device id and your IP address, kept to limit tries to 3 a day.</li>
+        <li>Invites: who invited whom, and the extra scans each of you earned.</li>
+        <li>If you cancel and tell us why: the reason you picked and what you wrote.</li>
+        <li>If you apply to the creator program: the name, email, handle, average views and country you send. Only the Budgeto team reads them.</li>
       </ul>
       <h2>Who helps us</h2>
       <ul>
@@ -27,7 +30,8 @@ export default function Privacy() {
         <li>Vercel: hosting.</li>
         <li>Google Gemini: reads the statement you upload to list its transactions. Files are sent for that one request.</li>
         <li>Whop, through Kwop: payments. We never see your card number.</li>
-        <li>Kwop: visit analytics on our public pages (landing, sign-up, log-in), and plan and payment status.</li>
+        <li>Kwop: visit analytics by Kwop on our public pages (landing, sign-up, log-in and the other public pages), and plan and payment status.</li>
+        <li>Resend: sends our emails (your report is ready, a reminder, a weekly recap). Every email has a one-click unsubscribe.</li>
       </ul>
       <h2>Your choices</h2>
       <ul>

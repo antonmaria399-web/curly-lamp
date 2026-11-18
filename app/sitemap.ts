@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { readdirSync } from "node:fs";
 import path from "node:path";
 import { canonical, isPrivatePath } from "@/lib/seo";
+import { AUDIENCES, COMPETITORS } from "@/lib/pages-content";
 
 // Built once per deploy from the app/ folder: every public page.tsx without a [dynamic] segment.
 export const dynamic = "force-static";
@@ -20,7 +21,9 @@ function routes(dir: string, segs: string[] = []): string[] {
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const paths = [...new Set(routes(path.join(process.cwd(), "app")))]
+  // [dynamic] pages with a known list of slugs: one page per audience and per competitor.
+  const seo = [...AUDIENCES.map((a) => `/for/${a.slug}`), ...COMPETITORS.map((c) => `/vs/${c.slug}`)];
+  const paths = [...new Set([...routes(path.join(process.cwd(), "app")), ...seo])]
     .filter((p) => !isPrivatePath(p))
     .sort((a, b) => (a === "/" ? -1 : b === "/" ? 1 : a.localeCompare(b)));
   return paths.map((p) => ({

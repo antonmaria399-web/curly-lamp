@@ -77,6 +77,33 @@ Tier = rank by price of Kwop's plans (`lib/quotas.ts`). Counted on the server pe
 | 2 ★ | Pro $9/mo ($86/yr) — Most popular | 30 | 12 months | yes | yes | yes | locked | locked |
 | 3 | Power $19/mo ($182/yr) | 100 | 36 months | yes | yes | yes | yes | yes |
 
+## GROWTH build (Kwop Pro, Nov 18) — the growth machine
+Full brief: `docs/GROWTH-SPEC.md` (key redacted). Its rules **replace** older rules on the same topics; the 13 method rules (no price on the landing page, one action "Find my leaks", value before price, one-tap sign-up, aha = watching the scan, paywall at the peak, price per day, checkout in the page, 3 climbing plans, phones first, everything real, zero dead ends, honest) still hold literally. Go-to-market plan: `GROWTH.md` (formats, creators, hooks, RPM rules, 30 days).
+
+### Growth blueprint (made for Budgeto)
+- **Interactive hero visual**: the hero stays the live drop zone (the product itself); right under the VSL, the **leak simulator** (`components/landing/calculator.tsx`): tap subscriptions you pay, the leak meter counts up, prices editable. Same component = the free tool `/tools/subscription-calculator`.
+- **Story told by the scroll** (`components/landing/story.tsx`): sticky iPhone on computers whose screen changes through 4 steps (bank Statements → scan → leak report → notifications); on phones each step has its own phone under it.
+- **Share**: every full result → `/s/<id>?i=<invite code>` (branded next/og image `app/s/[id]/opengraph-image.tsx`, totals only). Locked reports can't be shared (would leak the total).
+- **Invites** (`/i/<code>` → cookie `bdg_inv` 30 d → landing banner): friend signs up → **+3 scans each**; friend pays → inviter **+10 scans** (`lib/growth.ts#REWARD`, table `rewards`, used only after the normal limit, `profiles.bonus_used`). Shown in Account → Invite friends, on the dashboard and right under the first result.
+- **Creator program**: `/creators` (public, footer "Creators: get paid to post"), pay from `CREATOR_RATE` / `CREATOR_CAP` (default $1 / 1,000 views, $100 / video), form → `creator_applications` (3/day/IP, service role only). Creator links `?ref=<code>` → cookie `bdg_ref` → `profiles.source.ref`.
+- **/admin** (only `OWNER_EMAIL`, everyone else 404, checked on the server): Numbers (7/30 days, from `events` + tables, test accounts `@budgeto-test.dev` left out), Creators (status new → accepted → active → stopped, code, sign-ups/payers per code, "Copy the welcome message", Monday payout table), Scripts, Messages (`lib/growth-content.ts`), Feedback (cancel reasons).
+- **SEO**: `/for/<audience>` ×8 and `/vs/<competitor>` ×3 (`lib/pages-content.ts`, each with the live drop zone or the main button), `/tools/subscription-calculator`; JSON-LD SoftwareApplication + FAQPage; all in sitemap.xml.
+- **Keep the people who came**: first ✕ on the paywall → one honest yearly offer (`/api/offer`, `profiles.offer_until` = real 30-min window, once per account; copy says the yearly price is always in the plans); second ✕ → locked report + sticky bar. Cancel → "why?" (4 one-tap reasons, `cancel_feedback`) → one answer → "Cancel anyway" one tap away. "What's new" card on the dashboard (`components/app/growth.tsx#NEWS`).
+- **Emails** (`lib/email.ts`, Resend free plan): welcome with their result, "Your leak report is waiting" (after a paywall view, first within a day then after 24 h — the daily cron can't hit exactly 1 h), win-back 7 days after a cancel, weekly recap on Mondays. One Vercel cron a day (`vercel.json` → `/api/cron/daily`, `Authorization: Bearer $CRON_SECRET`). Each email once (`email_log`), one-click unsubscribe (`/api/unsubscribe`, HMAC). **No `RESEND_API_KEY` = skipped silently.** Resend needs a verified domain for `RESEND_FROM` to email anyone but the account owner.
+- **Events to Kwop**: share, invite_sent, invite_signup, creator_apply, offer_view, offer_paid, cancel_reason (+ the earlier ones). `events` table keeps paywall views / payments (amount from the checkout opened for that ref) for /admin.
+- Users can only update `name, answers, goal_*` on their profile (column grants): rewards, offer window and invite fields are server-only.
+
+### Growth audit (Nov 18) — gaps found → fixed
+- [x] GROWTH.md with web research (TikTok blocks the build machine: view counts marked as "not shown", owner checks on phone)
+- [x] /creators + applications table + rate limit · [x] /admin owner-only with 4 tabs (+ Feedback)
+- [x] ?ref= creator credit · [x] invite links + rewards counted on the server · [x] Share button carries the invite code
+- [x] /for ×8, /vs ×3, /tools mini tool, JSON-LD, sitemap
+- [x] yearly offer on first ✕ (real window, once) · [x] cancel reasons + one answer · [x] What's new
+- [x] emails + daily cron + unsubscribe (live once `RESEND_API_KEY` + a verified sender domain exist)
+- [x] interactive simulator + scroll story on the landing page · [x] footer links (creators, for, vs, tool)
+- [x] e2e: funnel + offer sheet; invite friend path + creators form + /admin 404 (`tests/e2e.spec.ts`)
+- [ ] Owner: Resend key + sender domain (asked) · [ ] owner: record VSL.md voice → `public/vsl.mp4`
+
 ## Architecture (what lives where)
 - `lib/ai.ts` — the only AI entry point (Gemini `GEMINI_MODEL`, default `gemini-flash-latest`); falls back to the PDF text parser (`lib/pdf.ts` + `lib/engine.ts#parseStatementText`) for text PDFs when no key. Leak detection is deterministic in `lib/engine.ts#analyze` for both.
 - The uploaded file is **never stored**; only `reports.result` (jsonb).
