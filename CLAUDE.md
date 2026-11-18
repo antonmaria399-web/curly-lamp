@@ -102,7 +102,8 @@ Full brief: `docs/GROWTH-SPEC.md` (key redacted). Its rules **replace** older ru
 - [x] emails + daily cron + unsubscribe (live once `RESEND_API_KEY` + a verified sender domain exist)
 - [x] interactive simulator + scroll story on the landing page · [x] footer links (creators, for, vs, tool)
 - [x] e2e: funnel + offer sheet; invite friend path + creators form + /admin 404 (`tests/e2e.spec.ts`)
-- [ ] Owner: Resend key + sender domain (asked) · [ ] owner: record VSL.md voice → `public/vsl.mp4`
+- [x] **LIVE (Nov 18)** at https://budgetoo-nine.vercel.app (commit 5167b50): live e2e green phone + computer (funnel + offer, invite path, creators form, /admin 404), cron registered (15:17 UTC daily), Vercel env `OWNER_EMAIL`, `CREATOR_RATE=1`, `CREATOR_CAP=100`, `CRON_SECRET` set by API; Kwop connect → "Connected to Kwop." Migration `20261118000000_growth.sql` applied to the live project (RLS on all 10 tables).
+- [ ] Owner: Resend key + sender domain (asked) → add `RESEND_API_KEY` + `RESEND_FROM` in Vercel · [ ] owner: record VSL.md voice → `public/vsl.mp4`
 
 ## Architecture (what lives where)
 - `lib/ai.ts` — the only AI entry point (Gemini `GEMINI_MODEL`, default `gemini-flash-latest`); falls back to the PDF text parser (`lib/pdf.ts` + `lib/engine.ts#parseStatementText`) for text PDFs when no key. Leak detection is deterministic in `lib/engine.ts#analyze` for both.
